@@ -1,0 +1,26 @@
+import axios from 'axios';
+import type {PlayerStats} from '../types/PlayerStats';
+
+const API_BASE = 'http://localhost:8080/api/stats'; // adjust if needed
+
+const PLAYER_IDS = [
+    '1d51deb3-3f4a-4d9e-8494-bf8d5e280341', // H3ZZ
+    '86df81a4-ecd1-439c-a717-7efff943f3b2', // Sinzey
+    'a0595bec-7399-4f27-a124-9a0886dbb59d', // Thomsen
+    '26e6f329-cf09-4a99-8f95-6e89cdca076b', // Camilla
+    'cabee4bd-4c52-4ef6-80d9-ceced8206e12', // Cav
+    'd0494eda-13bf-4d0a-801b-69a8aad4ded4', // Lugi
+    'a63130d8-d99a-4699-947e-8404b7ab2722', // Clawr
+    'f69d1f29-c0ea-42b9-80b4-3c5640a8be15', // Tylle
+    '14ba6328-38e5-4716-a981-21ecf703116c', // AnkjaerL
+    '2202482c-eec3-4fa8-9286-aa573cb6dc34', // Jipsii
+    '3bbbd6ea-449f-4a8c-8de0-10e5aa259718', // pace
+    '49ec6cd2-96ee-4952-b723-cd5c8c97ff31', // qAYKE
+];
+
+export async function fetchAllPlayerStats(): Promise<PlayerStats[]> {
+    const responses = await Promise.all(
+        PLAYER_IDS.map(id => axios.get<PlayerStats>(`${API_BASE}/${id}`))
+    );
+    return responses.map(res => res.data);
+}

@@ -1,72 +1,95 @@
 package com.faceit.backend.dto;
 
+import com.faceit.backend.model.FaceitMatchStatsResponse.MatchStats;
+import com.faceit.backend.model.FaceitMatchStatsResponse.MatchInnerStats;
+
+import java.util.List;
+
 public class PlayerStatsDTO {
-    private int gamesCount;
+
+    private String playerId;
+    private String nickname;
+    private double averageKd;
+    private double averageKr;
+    private double averageAdr;
+    private double averageHsPercent;
+    private double winRate;
+    private int matchesPlayed;
     private int wins;
     private int losses;
-    private int winRate;
-    private int eloDiff;
-    private int avgKills;
-    private int avgAssists;
-    private int avgDeaths;
-    private double avgKD;
-    private double avgKR;
-    private double avgADR;
-    private int avgHS;
+    private int eloChange;
+    private int kAvg;
+    private int aAvg;
+    private int dAvg;
 
-    public PlayerStatsDTO(int gamesCount, int wins, int losses, int winRate, int eloDiff,
-                          int avgKills, int avgAssists, int avgDeaths, double avgKD, double avgKR,
-                          double avgADR, int avgHS) {
-        this.gamesCount = gamesCount;
-        this.wins = wins;
-        this.losses = losses;
-        this.winRate = winRate;
-        this.eloDiff = eloDiff;
-        this.avgKills = avgKills;
-        this.avgAssists = avgAssists;
-        this.avgDeaths = avgDeaths;
-        this.avgKD = avgKD;
-        this.avgKR = avgKR;
-        this.avgADR = avgADR;
-        this.avgHS = avgHS;
+    public static PlayerStatsDTO fromMatches(List<MatchStats> matches, String playerId, List<Integer> eloHistory) {
+        double totalKd = 0, totalKr = 0, totalAdr = 0, totalHsPercent = 0;
+        int kills = 0, assists = 0, deaths = 0, wins = 0;
+        int validMatches = 0;
+
+        String nickname = null;
+
+        for (MatchStats match : matches) {
+            try {
+                MatchInnerStats s = match.getStats();
+                totalKd += Double.parseDouble(s.getKdRatio());
+                totalAdr += Double.parseDouble(s.getAdr());
+                totalKr += Double.parseDouble(s.getKrRatio());
+                totalHsPercent += Double.parseDouble(s.getHeadshotsPercent());
+                kills += Integer.parseInt(s.getKills());
+                assists += Integer.parseInt(s.getAssists());
+                deaths += Integer.parseInt(s.getDeaths());
+
+                if ("1".equals(s.getResult())) {
+                    wins++;
+                }
+                if (nickname == null) nickname = match.getNickname();
+                validMatches++;
+            } catch (Exception ignored) {}
+        }
+
+        PlayerStatsDTO dto = new PlayerStatsDTO();
+        dto.playerId = playerId;
+        dto.nickname = nickname != null ? nickname : "Unknown";
+        dto.averageKd = validMatches > 0 ? round(totalKd / validMatches, 2) : 0;
+        dto.averageKr = validMatches > 0 ? round(totalKr / validMatches, 2) : 0;
+        dto.averageAdr = validMatches > 0 ? round(totalAdr / validMatches, 2) : 0;
+        dto.averageHsPercent = validMatches > 0 ? Math.round(totalHsPercent / validMatches) : 0;
+        dto.winRate = validMatches > 0 ? Math.round((double) wins / validMatches * 100) : 0;
+        dto.wins = wins;
+        dto.losses = validMatches - wins;
+        dto.matchesPlayed = validMatches;
+        dto.kAvg = validMatches > 0 ? (int) Math.round((double) kills / validMatches) : 0;
+        dto.aAvg = validMatches > 0 ? (int) Math.round((double) assists / validMatches) : 0;
+        dto.dAvg = validMatches > 0 ? (int) Math.round((double) deaths / validMatches) : 0;
+
+        if (eloHistory != null && eloHistory.size() >= 2) {
+            dto.eloChange = eloHistory.get(0) - eloHistory.get(eloHistory.size() - 1);
+        } else {
+            dto.eloChange = 0;
+        }
+
+        return dto;
     }
 
-    public PlayerStatsDTO() {}
+    private static double round(double value, int places) {
+        double scale = Math.pow(10, places);
+        return Math.round(value * scale) / scale;
+    }
 
-    // Getters and setters
-    public int getGamesCount() { return gamesCount; }
-    public void setGamesCount(int gamesCount) { this.gamesCount = gamesCount; }
-
+    // Getters
+    public String getPlayerId() { return playerId; }
+    public String getNickname() { return nickname; }
+    public double getAverageKd() { return averageKd; }
+    public double getAverageKr() { return averageKr; }
+    public double getAverageAdr() { return averageAdr; }
+    public double getAverageHsPercent() { return averageHsPercent; }
+    public double getWinRate() { return winRate; }
+    public int getMatchesPlayed() { return matchesPlayed; }
     public int getWins() { return wins; }
-    public void setWins(int wins) { this.wins = wins; }
-
     public int getLosses() { return losses; }
-    public void setLosses(int losses) { this.losses = losses; }
-
-    public int getWinRate() { return winRate; }
-    public void setWinRate(int winRate) { this.winRate = winRate; }
-
-    public int getEloDiff() { return eloDiff; }
-    public void setEloDiff(int eloDiff) { this.eloDiff = eloDiff; }
-
-    public int getAvgKills() { return avgKills; }
-    public void setAvgKills(int avgKills) { this.avgKills = avgKills; }
-
-    public int getAvgAssists() { return avgAssists; }
-    public void setAvgAssists(int avgAssists) { this.avgAssists = avgAssists; }
-
-    public int getAvgDeaths() { return avgDeaths; }
-    public void setAvgDeaths(int avgDeaths) { this.avgDeaths = avgDeaths; }
-
-    public double getAvgKD() { return avgKD; }
-    public void setAvgKD(double avgKD) { this.avgKD = avgKD; }
-
-    public double getAvgKR() { return avgKR; }
-    public void setAvgKR(double avgKR) { this.avgKR = avgKR; }
-
-    public double getAvgADR() { return avgADR; }
-    public void setAvgADR(double avgADR) { this.avgADR = avgADR; }
-
-    public int getAvgHS() { return avgHS; }
-    public void setAvgHS(int avgHS) { this.avgHS = avgHS; }
+    public int getEloChange() { return eloChange; }
+    public int getKAvg() { return kAvg; }
+    public int getAAvg() { return aAvg; }
+    public int getDAvg() { return dAvg; }
 }
