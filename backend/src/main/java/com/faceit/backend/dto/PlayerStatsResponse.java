@@ -19,6 +19,10 @@ public class PlayerStatsResponse {
         this.stats99 = stats99;
     }
 
+    public PlayerStatsResponse() {
+        // default constructor til fallback-objekter
+    }
+
     // Getters and setters
     public String getPlayerId() { return playerId; }
     public void setPlayerId(String playerId) { this.playerId = playerId; }

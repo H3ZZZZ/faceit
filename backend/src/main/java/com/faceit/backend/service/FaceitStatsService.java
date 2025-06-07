@@ -8,10 +8,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-
 
 @Service
 public class FaceitStatsService {
@@ -57,20 +57,25 @@ public class FaceitStatsService {
         if (allGames.size() <= limit) return new PlayerStatsDTO();
 
         List<Matchroom> games = allGames.subList(0, limit);
-        Matchroom latest = games.get(0); // Nyeste kamp (første i listen)
 
-        // Find første kamp der har et gyldigt elo-felt (kan være vi spiller uden ELO nogle gange)
-        Matchroom oldestWithElo = null;
-        for (int i = limit; i < allGames.size(); i++) {
-            if (allGames.get(i).getElo() != null) {
-                oldestWithElo = allGames.get(i);
+        Integer latestElo = null;
+        for (Matchroom m : games) {
+            if (m.getElo() != null) {
+                latestElo = m.getElo();
                 break;
             }
         }
 
-        int eloDiff = (oldestWithElo != null && latest.getElo() != null)
-                ? latest.getElo() - oldestWithElo.getElo()
-                : 0;
+        Integer previousElo = null;
+        for (int i = limit; i < allGames.size(); i++) {
+            Matchroom m = allGames.get(i);
+            if (m.getElo() != null) {
+                previousElo = m.getElo();
+                break;
+            }
+        }
+
+        int eloDiff = (latestElo != null && previousElo != null) ? latestElo - previousElo : 0;
 
         int wins = (int) games.stream().filter(g -> g.getI10() == 1).count();
         int losses = limit - wins;
@@ -104,7 +109,4 @@ public class FaceitStatsService {
     private double round2(double value) {
         return Math.round(value * 100.0) / 100.0;
     }
-
-
-
 }
