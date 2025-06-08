@@ -6,12 +6,12 @@ import java.util.List;
 
 public class FaceitMatchStatsResponse {
 
-    @JsonProperty
-    private List<MatchStats> matches;
-
-    public List<MatchStats> getMatches() {
-        return matches;
-    }
+//    @JsonProperty
+//    private List<MatchStats> matches;
+//
+//    public List<MatchStats> getMatches() {
+//        return matches;
+//    }
 
     public static class MatchStats {
         @JsonProperty("i6")
@@ -43,6 +43,20 @@ public class FaceitMatchStatsResponse {
 
         @JsonProperty("c3")
         private String krRatio;
+
+        @JsonProperty("matchId")
+        private String matchId;
+
+        @JsonProperty("date")
+        private long date;
+
+        public long getDate() {
+            return date;
+        }
+
+        public String getMatchId() {
+            return matchId;
+        }
 
         public MatchInnerStats getStats() {
             return new MatchInnerStats(kills, assists, deaths, kdRatio, krRatio, adr, headshotsPercent, result);

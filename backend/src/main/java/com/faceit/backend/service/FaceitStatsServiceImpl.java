@@ -3,43 +3,36 @@ package com.faceit.backend.service;
 import com.faceit.backend.dto.PlayerStatsDTO;
 import com.faceit.backend.model.FaceitMatchStatsResponse;
 import com.faceit.backend.model.FaceitPlayerInfo;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.beans.factory.annotation.Value;
-
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
 public class FaceitStatsServiceImpl implements FaceitStatsService {
 
-    private final WebClient webClient;
-    private final String faceitApiKey;
+    private final WebClient webClient;               // for v1 (no token)
+    private final WebClient authenticatedWebClient;  // for v4 (token)
 
-    public FaceitStatsServiceImpl(WebClient.Builder webClientBuilder,
-                                  @Value("${faceit.api.key}") String faceitApiKey) {
-        this.webClient = webClientBuilder.baseUrl("https://www.faceit.com").build();
-        this.faceitApiKey = faceitApiKey;
+    public FaceitStatsServiceImpl(@Qualifier("unauthenticatedWebClient") WebClient webClient,
+                                  @Qualifier("authenticatedWebClient") WebClient authenticatedWebClient) {
+        this.webClient = webClient;
+        this.authenticatedWebClient = authenticatedWebClient;
     }
 
     private FaceitPlayerInfo fetchPlayerInfo(String playerId) {
-        return WebClient.builder()
-                .baseUrl("https://open.faceit.com")
-                .defaultHeader("Authorization", "Bearer " + faceitApiKey)
-                .build()
-                .get()
+        return authenticatedWebClient.get()
                 .uri("/data/v4/players/{playerId}", playerId)
                 .retrieve()
                 .bodyToMono(FaceitPlayerInfo.class)
                 .block();
     }
 
-
-
     @Override
     public PlayerStatsDTO getLast30Stats(String playerId) {
-        // Fetch last 100 matches
         List<FaceitMatchStatsResponse.MatchStats> matchList = webClient.get()
                 .uri("/api/stats/v1/stats/time/users/{playerId}/games/cs2?size=100&game_mode=5v5", playerId)
                 .retrieve()
@@ -57,7 +50,6 @@ public class FaceitStatsServiceImpl implements FaceitStatsService {
             }
         }
 
-// Extract last5Results from most recent matches (top of list)
         List<String> last5Results = new ArrayList<>();
         for (int i = 0; i < Math.min(5, matchList.size()); i++) {
             try {
@@ -65,12 +57,10 @@ public class FaceitStatsServiceImpl implements FaceitStatsService {
                 last5Results.add(won ? "W" : "L");
             } catch (Exception ignored) {}
         }
-        java.util.Collections.reverse(last5Results);
+        Collections.reverse(last5Results);
 
-        // Fetch player info
         FaceitPlayerInfo playerInfo = fetchPlayerInfo(playerId);
 
-        // 🧠 Build DTO using the new helper that passes `last5Results`
         PlayerStatsDTO dto = PlayerStatsDTO.fromMatches(matchList, playerId, eloHistory, last5Results);
         if (playerInfo != null) {
             dto.setAvatar(playerInfo.getAvatar());
@@ -81,7 +71,6 @@ public class FaceitStatsServiceImpl implements FaceitStatsService {
 
         return dto;
     }
-
 
     @Override
     public List<PlayerStatsDTO> getStatsForPlayers(List<String> playerIds) {
