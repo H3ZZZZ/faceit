@@ -3,6 +3,7 @@ package com.faceit.backend.dto;
 import com.faceit.backend.model.FaceitMatchStatsResponse.MatchStats;
 import com.faceit.backend.model.FaceitMatchStatsResponse.MatchInnerStats;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PlayerStatsDTO {
@@ -21,7 +22,12 @@ public class PlayerStatsDTO {
     private int kAvg;
     private int aAvg;
     private int dAvg;
-    private List<Boolean> winStreak;
+    private String avatar;
+    private String country;
+    private int skillLevel;
+    private int faceitElo;
+    private int winStreakCount;
+    private List<String> last5Results; ;
 
     public static PlayerStatsDTO fromMatches(List<MatchStats> matches, String playerId, List<Integer> eloHistory) {
         double totalKd = 0, totalKr = 0, totalAdr = 0, totalHsPercent = 0;
@@ -70,8 +76,42 @@ public class PlayerStatsDTO {
             dto.eloChange = 0;
         }
 
+        // 🟢 Add streak and last 5 result fields
+        List<String> last5 = new ArrayList<>();
+        int winStreak = 0;
+
+// Determine win streak (count wins from most recent match until first loss)
+        for (int i = 0; i < matches.size(); i++) {
+            try {
+                boolean won = "1".equals(matches.get(i).getStats().getResult());
+                if (won) {
+                    winStreak++;
+                } else {
+                    break;
+                }
+            } catch (Exception ignored) {}
+        }
+
+// Collect the last 5 results (most recent games first)
+        int total = matches.size();
+        for (int i = total - 1; i >= 0 && last5.size() < 5; i--) {
+            try {
+                boolean won = "1".equals(matches.get(i).getStats().getResult());
+                last5.add(won ? "W" : "L");
+            } catch (Exception ignored) {}
+        }
+
+// Optional: reverse to show most recent result first
+// E.g., W, L, L, L, W (most recent → oldest)
+        java.util.Collections.reverse(last5);
+
+        dto.setLast5Results(last5);
+        dto.setWinStreakCount(winStreak);
+
+
         return dto;
     }
+
 
     private static double round(double value, int places) {
         double scale = Math.pow(10, places);
@@ -93,4 +133,20 @@ public class PlayerStatsDTO {
     public int getKAvg() { return kAvg; }
     public int getAAvg() { return aAvg; }
     public int getDAvg() { return dAvg; }
+    public String getAvatar() { return avatar; }
+    public String getCountry() { return country; }
+    public int getSkillLevel() { return skillLevel; }
+    public int getFaceitElo() { return faceitElo; }
+    public int getWinStreakCount() { return winStreakCount; }
+    public List<String> getLast5Results() { return last5Results; }
+
+    // Setters
+    public void setAvatar(String avatar) { this.avatar = avatar; }
+    public void setCountry(String country) { this.country = country; }
+    public void setSkillLevel(int skillLevel) { this.skillLevel = skillLevel; }
+    public void setFaceitElo(int faceitElo) { this.faceitElo = faceitElo; }
+    public void setWinStreakCount(int winStreakCount) { this.winStreakCount = winStreakCount; }
+    public void setLast5Results(List<String> last5Results) {
+        this.last5Results = last5Results != null ? last5Results : new ArrayList<>(); }
+
 }
