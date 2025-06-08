@@ -1,15 +1,29 @@
-export type PlayerStats = {
-  playerId: string;
-  nickname: string;
-  wins: number;
-  losses: number;
-  winRate: number;
-  eloChange: number;
-  kavg: number;
-  aavg: number;
-  davg: number;
-  averageKd: string;
+export type StatSegment = {
+  averageKd: number;
   averageKr: number;
   averageAdr: number;
   averageHsPercent: number;
+  winRate: number;
+  matchesPlayed: number;
+  wins: number;
+  losses: number;
+  eloChange: number;
+  winStreakCount: number;
+  last5Results: string[];
+  kavg: number;
+  aavg: number;
+  davg: number;
+};
+
+export type PlayerStats = {
+  playerId: string;
+  nickname: string;
+  avatar: string;
+  country: string;
+  skillLevel: number;
+  faceitElo: number;
+  last10: StatSegment;
+  last30: StatSegment;
+  last50: StatSegment;
+  last100: StatSegment;
 };

@@ -39,9 +39,9 @@ public class FaceitStatsServiceImpl implements FaceitStatsService {
 
     @Override
     public PlayerStatsDTO getLast30Stats(String playerId) {
-        // Fetch last 30 matches
+        // Fetch last 100 matches
         List<FaceitMatchStatsResponse.MatchStats> matchList = webClient.get()
-                .uri("/api/stats/v1/stats/time/users/{playerId}/games/cs2?size=30&game_mode=5v5", playerId)
+                .uri("/api/stats/v1/stats/time/users/{playerId}/games/cs2?size=100&game_mode=5v5", playerId)
                 .retrieve()
                 .bodyToFlux(FaceitMatchStatsResponse.MatchStats.class)
                 .collectList()
@@ -57,11 +57,21 @@ public class FaceitStatsServiceImpl implements FaceitStatsService {
             }
         }
 
-        // Fetch player info from authenticated API
+// Extract last5Results from most recent matches (top of list)
+        List<String> last5Results = new ArrayList<>();
+        for (int i = 0; i < Math.min(5, matchList.size()); i++) {
+            try {
+                boolean won = "1".equals(matchList.get(i).getStats().getResult());
+                last5Results.add(won ? "W" : "L");
+            } catch (Exception ignored) {}
+        }
+        java.util.Collections.reverse(last5Results);
+
+        // Fetch player info
         FaceitPlayerInfo playerInfo = fetchPlayerInfo(playerId);
 
-        // Build stats DTO and enrich with profile info
-        PlayerStatsDTO dto = PlayerStatsDTO.fromMatches(matchList, playerId, eloHistory);
+        // 🧠 Build DTO using the new helper that passes `last5Results`
+        PlayerStatsDTO dto = PlayerStatsDTO.fromMatches(matchList, playerId, eloHistory, last5Results);
         if (playerInfo != null) {
             dto.setAvatar(playerInfo.getAvatar());
             dto.setCountry(playerInfo.getCountry());
