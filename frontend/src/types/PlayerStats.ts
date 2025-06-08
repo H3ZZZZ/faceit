@@ -1,16 +1,15 @@
-export interface PlayerStats {
-    playerId: string;
-    nickname: string;
-    averageKd: number;
-    averageKr: number;
-    averageAdr: number;
-    averageHsPercent: number;
-    winRate: number;
-    matchesPlayed: number;
-    wins: number;
-    losses: number;
-    eloChange: number;
-    davg: number;
-    aavg: number;
-    kavg: number;
-}
+export type PlayerStats = {
+  playerId: string;
+  nickname: string;
+  wins: number;
+  losses: number;
+  winRate: number;
+  eloChange: number;
+  kavg: number;
+  aavg: number;
+  davg: number;
+  averageKd: string;
+  averageKr: number;
+  averageAdr: number;
+  averageHsPercent: number;
+};

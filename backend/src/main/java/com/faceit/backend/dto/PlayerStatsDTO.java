@@ -21,6 +21,7 @@ public class PlayerStatsDTO {
     private int kAvg;
     private int aAvg;
     private int dAvg;
+    private List<Boolean> winStreak;
 
     public static PlayerStatsDTO fromMatches(List<MatchStats> matches, String playerId, List<Integer> eloHistory) {
         double totalKd = 0, totalKr = 0, totalAdr = 0, totalHsPercent = 0;
