@@ -12,7 +12,7 @@ function App() {
 
   return (
     <main className="bg-[#121212] min-h-screen p-6">
-      <h1 className="text-3xl text-white font-bold mb-6">Player Stats</h1>
+      <h1 className="text-3xl text-white font-bold mb-6">GOGO Stats</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {data.map(player => (
           <PlayerCard key={player.playerId} {...player} />
