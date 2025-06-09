@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+html,
 body {
-  @apply bg-[#121212] text-white;
+  @apply h-full overflow-x-hidden bg-[#121212] text-white;
+}
+
+#root {
+  @apply h-full;
 }
