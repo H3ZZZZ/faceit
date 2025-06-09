@@ -23,7 +23,7 @@ export default function PlayerCard({ segmentKey, ...player }: Props) {
         {icons.map((icon, i) => (
           <img
             key={i}
-            src={`/src/assets/icons/${icon}.png`}
+            src={`/icons/${icon}.png`} // points to public/icons/
             alt={icon}
             className="w-8 h-8 object-contain"
           />
@@ -50,7 +50,7 @@ export default function PlayerCard({ segmentKey, ...player }: Props) {
             <div className="flex items-center gap-2 text-xs text-gray-400">
               <span>ELO: {player.faceitElo}</span>
               <img
-                src={`/src/assets/faceit-levels/${player.skillLevel}.png`}
+                src={`/faceit-levels/${player.skillLevel}.png`}
                 alt={`Level ${player.skillLevel}`}
                 className="w-5 h-5 object-contain"
               />
