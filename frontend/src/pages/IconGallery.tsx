@@ -8,7 +8,7 @@ const ICONS = [
   "trophy",
   "headshot",
   "poop",
-  "bait"
+  "bait",
 ];
 
 export default function IconGallery() {
@@ -19,7 +19,7 @@ export default function IconGallery() {
         {ICONS.map((icon) => (
           <div key={icon} className="flex flex-col items-center gap-2">
             <img
-              src={`/src/assets/icons/${icon}.png`}
+              src={`/icons/${icon}.png`}
               alt={icon}
               className="w-12 h-12 object-contain"
             />
