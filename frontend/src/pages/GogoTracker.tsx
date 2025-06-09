@@ -1,25 +1,14 @@
 // src/pages/GogoTracker.tsx
-import { useEffect, useState } from "react";
-import { fetchAllPlayerStats } from "../api/api";
+import { useState } from "react";
+import { usePlayerData } from "../context/PlayerDataContext";
 import PlayerCard from "../components/PlayerCard";
-import type { PlayerStats } from "../types/PlayerStats";
 
 export default function GogoTracker() {
-  const [data, setData] = useState<PlayerStats[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [segmentKey, setSegmentKey] = useState<
-    "last10" | "last30" | "last50" | "last100"
-  >("last30");
-
-  useEffect(() => {
-    fetchAllPlayerStats().then((data) => {
-      setData(data);
-      setLoading(false);
-    });
-  }, []);
+  const { data, loading } = usePlayerData();
+  const [segmentKey, setSegmentKey] = useState<"last10" | "last30" | "last50" | "last100">("last30");
 
   return (
-    <main className="bg-[#121212] min-h-screen p-6">
+    <main className="min-h-screen p-6 overflow-x-hidden overflow-y-auto">
       {/* Global segment selector */}
       <div className="flex justify-center gap-2 mb-6">
         {["last10", "last30", "last50", "last100"].map((key) => (
@@ -42,7 +31,7 @@ export default function GogoTracker() {
         <div className="text-center text-white">Loading stats...</div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-          {data.map((player) => (
+          {data!.map((player) => (
             <PlayerCard
               key={player.playerId}
               {...player}

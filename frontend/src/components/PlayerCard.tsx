@@ -19,9 +19,14 @@ export default function PlayerCard({ segmentKey, ...player }: Props) {
   return (
     <div className="bg-[#1e1e1e] text-white p-4 rounded-xl shadow-md transition hover:shadow-lg hover:scale-[1.015] flex flex-col gap-3 relative">
       {/* Icons (Top Right) */}
-      <div className="absolute top-2 right-2 flex gap-1 text-xl">
+      <div className="absolute top-3 right-2 flex gap-1 text-xl items-end">
         {icons.map((icon, i) => (
-          <span key={i}>{icon}</span>
+          <img
+            key={i}
+            src={`/src/assets/icons/${icon}.png`}
+            alt={icon}
+            className="w-8 h-8 object-contain"
+          />
         ))}
       </div>
 
@@ -44,9 +49,11 @@ export default function PlayerCard({ segmentKey, ...player }: Props) {
             </div>
             <div className="flex items-center gap-2 text-xs text-gray-400">
               <span>ELO: {player.faceitElo}</span>
-              <div className="w-5 h-5 bg-orange-500 text-black text-xs font-bold flex items-center justify-center rounded-full">
-                {player.skillLevel}
-              </div>
+              <img
+                src={`/src/assets/faceit-levels/${player.skillLevel}.png`}
+                alt={`Level ${player.skillLevel}`}
+                className="w-5 h-5 object-contain"
+              />
             </div>
           </div>
         </div>

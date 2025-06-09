@@ -1,28 +1,34 @@
 // src/components/Navbar.tsx
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from "react-router-dom";
 
 const pageTitles: Record<string, string> = {
-  '/': 'Search',
-  '/GogoTracker': 'GOGO Tracker',
+  "/": "Search",
+  "/GogoTracker": "GOGO Tracker",
 };
 
 export default function Navbar() {
   const { pathname } = useLocation();
-  const currentTitle = pageTitles[pathname] || '';
+  const currentTitle = pageTitles[pathname] || "";
 
   return (
-    <nav className="flex items-center justify-between mb-6 text-white">
+    <nav className="px-6 py-4 flex items-center justify-between text-white">
       {/* Left: Links */}
       <div className="flex gap-4 text-sm">
         <Link
           to="/"
-          className={pathname === '/' ? 'text-orange-400' : 'hover:text-orange-400'}
+          className={
+            pathname === "/" ? "text-orange-400" : "hover:text-orange-400"
+          }
         >
           Search
         </Link>
         <Link
           to="/GogoTracker"
-          className={pathname === '/GogoTracker' ? 'text-orange-400' : 'hover:text-orange-400'}
+          className={
+            pathname === "/GogoTracker"
+              ? "text-orange-400"
+              : "hover:text-orange-400"
+          }
         >
           GOGO Tracker
         </Link>
