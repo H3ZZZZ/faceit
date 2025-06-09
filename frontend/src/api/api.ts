@@ -1,6 +1,6 @@
 import type { PlayerStats } from "../types/PlayerStats";
 
-const API_BASE = "http://localhost:8080/api/stats";
+const API_BASE = `${import.meta.env.VITE_API_BASE_URL}`;
 
 const PLAYER_IDS = [
   "1d51deb3-3f4a-4d9e-8494-bf8d5e280341", // H3ZZ
