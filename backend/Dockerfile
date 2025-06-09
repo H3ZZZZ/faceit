@@ -1,17 +1,14 @@
-# Brug en JDK base image
+# Use slimmer JDK base
 FROM eclipse-temurin:17-jdk-jammy
 
-# Set working directory
 WORKDIR /app
 
-# Kopiér kun backend-koden
-COPY backend /app
+# Du ER allerede i ./backend som build context, så bare kopiér alt herfra
+COPY . .
 
-# Giv eksekveringstilladelse og byg app'en
-RUN chmod +x ./mvnw && ./mvnw package -DskipTests
+# Build uden tests
+RUN ./mvnw package -DskipTests
 
-# Eksponér Spring Boot default port
 EXPOSE 8080
 
-# Start app'en
 CMD ["java", "-jar", "target/backend-0.0.1-SNAPSHOT.jar"]
