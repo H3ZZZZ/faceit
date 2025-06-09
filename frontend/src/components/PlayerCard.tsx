@@ -1,11 +1,11 @@
 import type { PlayerStats, StatSegment } from "../types/PlayerStats";
 import { getPlayerIcons } from "../utils/icons";
-import { useState } from "react";
 
-export default function PlayerCard(player: PlayerStats) {
-  const [segmentKey, setSegmentKey] = useState<
-    "last10" | "last30" | "last50" | "last100"
-  >("last30");
+type Props = PlayerStats & {
+  segmentKey: "last10" | "last30" | "last50" | "last100";
+};
+
+export default function PlayerCard({ segmentKey, ...player }: Props) {
   const segment: StatSegment = player[segmentKey];
 
   const icons = getPlayerIcons({
@@ -16,11 +16,9 @@ export default function PlayerCard(player: PlayerStats) {
     winstreak: segment.winStreakCount,
   });
 
-  const segmentOptions = ["last10", "last30", "last50", "last100"] as const;
-
   return (
-    <div className="relative bg-[#1e1e1e] text-white p-4 rounded-xl shadow-md hover:scale-[1.02] transition flex flex-col gap-3">
-      {/* Icons */}
+    <div className="bg-[#1e1e1e] text-white p-4 rounded-xl shadow-md transition hover:shadow-lg hover:scale-[1.015] flex flex-col gap-3 relative">
+      {/* Icons (Top Right) */}
       <div className="absolute top-2 right-2 flex gap-1 text-xl">
         {icons.map((icon, i) => (
           <span key={i}>{icon}</span>
@@ -28,42 +26,34 @@ export default function PlayerCard(player: PlayerStats) {
       </div>
 
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <img
-          src={player.avatar}
-          alt="avatar"
-          className="w-12 h-12 rounded-full"
-        />
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl font-semibold">{player.nickname}</h2>
-            <img
-              src={`https://flagcdn.com/24x18/${player.country.toLowerCase()}.png`}
-              alt={player.country}
-              className="w-6 h-4 object-cover rounded-sm"
-            />
-            <div className="w-6 h-6 bg-orange-500 text-black text-xs font-bold flex items-center justify-center rounded-full">
-              {player.skillLevel}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <img
+            src={player.avatar}
+            alt="avatar"
+            className="w-10 h-10 rounded-full"
+          />
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="font-semibold text-lg">{player.nickname}</h2>
+              <img
+                src={`https://flagcdn.com/24x18/${player.country.toLowerCase()}.png`}
+                alt={player.country}
+                className="w-4 h-3 object-cover rounded-sm mt-[1px]"
+              />
+            </div>
+            <div className="flex items-center gap-2 text-xs text-gray-400">
+              <span>ELO: {player.faceitElo}</span>
+              <div className="w-5 h-5 bg-orange-500 text-black text-xs font-bold flex items-center justify-center rounded-full">
+                {player.skillLevel}
+              </div>
             </div>
           </div>
-          <div className="text-sm text-orange-400">ELO: {player.faceitElo}</div>
         </div>
       </div>
 
-      {/* Segment buttons */}
-      <div className="flex gap-2">
-        {segmentOptions.map((key) => (
-          <button
-            key={key}
-            className={`text-xs px-2 py-1 rounded ${
-              key === segmentKey ? "bg-orange-500 text-black" : "bg-gray-700"
-            }`}
-            onClick={() => setSegmentKey(key)}
-          >
-            {key.replace("last", "Last ")}
-          </button>
-        ))}
-      </div>
+      {/* Divider */}
+      <div className="border-t border-gray-700" />
 
       {/* Stats */}
       <div className="grid grid-cols-2 text-sm gap-y-1">
@@ -93,7 +83,7 @@ export default function PlayerCard(player: PlayerStats) {
       </div>
 
       {/* Last 5 results */}
-      <div className="flex gap-1 mt-2">
+      <div className="flex gap-1">
         {segment.last5Results.map((r, i) => (
           <span
             key={i}

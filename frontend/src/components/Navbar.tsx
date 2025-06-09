@@ -2,7 +2,7 @@
 import { Link, useLocation } from 'react-router-dom';
 
 const pageTitles: Record<string, string> = {
-  '/': 'Home',
+  '/': 'Search',
   '/GogoTracker': 'GOGO Tracker',
 };
 
@@ -18,7 +18,7 @@ export default function Navbar() {
           to="/"
           className={pathname === '/' ? 'text-orange-400' : 'hover:text-orange-400'}
         >
-          Home
+          Search
         </Link>
         <Link
           to="/GogoTracker"
