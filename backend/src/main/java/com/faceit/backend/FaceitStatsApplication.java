@@ -19,10 +19,16 @@ public class FaceitStatsApplication {
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
 				registry.addMapping("/**")
-						.allowedOrigins("http://localhost:5173")
+						.allowedOrigins(
+								"http://localhost:5173",
+								"https://6846a520490c3f9985f9d3e0--faceitfrontend.netlify.app",
+								"https://frederikhess.dk",
+								"https://www.frederikhess.dk"
+						)
 						.allowedMethods("*");
 			}
 		};
 	}
+
 
 }
