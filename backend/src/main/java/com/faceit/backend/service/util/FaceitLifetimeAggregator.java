@@ -143,4 +143,57 @@ public class FaceitLifetimeAggregator {
         double scale = Math.pow(10, places);
         return Math.round(val * scale) / scale;
     }
+
+    public static void calculateEloGain(List<MatchStats> matches) {
+        for (int i = 0; i < matches.size(); i++) {
+            MatchStats current = matches.get(i);
+            Integer eloNow = parseElo(current.getElo());
+
+            if (eloNow == null) {
+                current.setEloGain(null);
+                continue;
+            }
+
+            // Find næste kamp MED en gyldig elo
+            Integer eloBefore = null;
+            for (int j = i + 1; j < matches.size(); j++) {
+                eloBefore = parseElo(matches.get(j).getElo());
+                if (eloBefore != null) {
+                    break;
+                }
+            }
+
+            if (eloBefore != null) {
+                int eloGain = eloNow - eloBefore;
+
+                // Hvis vi spotter et elo reset
+                if (Math.abs(eloGain) > 70) {
+                    String result = current.getStats().getResult();
+                    if ("1".equals(result)) {
+                        current.setEloGain(25);
+                    } else if ("0".equals(result)) {
+                        current.setEloGain(-25);
+                    } else {
+                        current.setEloGain(null); // fallback hvis result er tomt
+                    }
+                } else {
+                    current.setEloGain(eloGain);
+                }
+
+            } else {
+                current.setEloGain(null); // kunne ikke finde gyldig "before elo"
+            }
+        }
+    }
+
+    private static Integer parseElo(String elo) {
+        try {
+            return elo != null ? Integer.parseInt(elo) : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+
+
 }

@@ -23,6 +23,13 @@ public class LifetimeStatsDTO {
     private String highestKdMatchId;
     private double lowestKd;
     private String lowestKdMatchId;
+    private String avatar;
+    private String country;
+    private int faceitElo;
+    private int skillLevel;
+    private String game_player_id;
+    private String nickname;
+
 
 
 
@@ -89,5 +96,24 @@ public class LifetimeStatsDTO {
 
     public String getLowestKrMatchId() { return lowestKrMatchId; }
     public void setLowestKrMatchId(String lowestKrMatchId) { this.lowestKrMatchId = lowestKrMatchId; }
+
+    public String getAvatar() { return avatar; }
+    public void setAvatar(String avatar) { this.avatar = avatar; }
+
+    public String getCountry() { return country; }
+    public void setCountry(String country) { this.country = country; }
+
+    public int getFaceitElo() { return faceitElo; }
+    public void setFaceitElo(int faceitElo) { this.faceitElo = faceitElo; }
+
+    public int getSkillLevel() { return skillLevel; }
+    public void setSkillLevel(int skillLevel) { this.skillLevel = skillLevel; }
+
+    public String getGame_player_id() { return game_player_id; }
+    public void setGame_player_id(String game_player_id) { this.game_player_id = game_player_id; }
+
+    public String getNickname() { return nickname; }
+    public void setNickname(String nickname) { this.nickname = nickname; }
+
 
 }

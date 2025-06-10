@@ -9,4 +9,5 @@ public interface FaceitLifetimeStatsService {
     List<FaceitMatchStatsResponse.MatchStats> fetchAllCs2Matches(String playerId);
 
     LifetimeStatsDTO getLifetimeStats(String playerId);
+    LifetimeStatsDTO getLifetimeStatsByNickname(String nickname);
 }
