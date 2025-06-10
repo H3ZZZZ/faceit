@@ -7,7 +7,7 @@ import IconGallery from "./pages/IconGallery";
 
 export default function App() {
   return (
-    <main className="min-h-screen overflow-hidden">
+    <main className=""> 
       <Navbar />
       <div className="px-6 pb-6">
         <Routes>
