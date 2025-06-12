@@ -18,6 +18,9 @@ public class FaceitMatchStatsResponse {
         @JsonProperty("i6")
         private String kills;
 
+        @JsonProperty("created_at")
+        private long createdAt;
+
         @JsonProperty("i1")
         private String map;
 
@@ -76,10 +79,19 @@ public class FaceitMatchStatsResponse {
             return map;
         }
 
+        public long getCreatedAt() {
+            return createdAt;
+        }
+
+        public long setCreatedAt(long createdAt) {
+            this.createdAt = createdAt;
+            return createdAt;
+        }
+
 
 
         public MatchInnerStats getStats() {
-            return new MatchInnerStats(kills, assists, deaths, kdRatio, krRatio, adr, headshotsPercent, result, matchId, date, map, elo, nickname);
+            return new MatchInnerStats(kills, assists, deaths, kdRatio, krRatio, adr, headshotsPercent, result, matchId, date, map, elo, nickname, createdAt);
         }
 
         public String getElo() {
@@ -105,9 +117,10 @@ public class FaceitMatchStatsResponse {
         private final String map;
         private final String elo;
         private final String nickname;
+        private final long createdAt;
 
 
-        public MatchInnerStats(String kills, String assists, String deaths, String kdRatio, String krRatio, String adr, String headshotsPercent, String result, String matchId, long date, String map, String elo, String nickname) {
+        public MatchInnerStats(String kills, String assists, String deaths, String kdRatio, String krRatio, String adr, String headshotsPercent, String result, String matchId, long date, String map, String elo, String nickname, long createdAt) {
             this.kills = kills;
             this.assists = assists;
             this.deaths = deaths;
@@ -121,6 +134,7 @@ public class FaceitMatchStatsResponse {
             this.map = map;
             this.elo = elo;
             this.nickname = nickname;
+            this.createdAt = createdAt;
         }
 
         public String getKills() {
@@ -168,6 +182,10 @@ public class FaceitMatchStatsResponse {
         public String getNickname() {
             return nickname;
         }
+        public long getCreatedAt() {
+            return createdAt;
+        }
+
 
     }
 }

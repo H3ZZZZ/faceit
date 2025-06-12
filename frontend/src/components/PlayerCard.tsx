@@ -1,5 +1,8 @@
 import type { PlayerStats, StatSegment } from "../types/PlayerStats";
 import { getPlayerIcons } from "../utils/icons";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
 
 type Props = PlayerStats & {
   segmentKey: "last10" | "last30" | "last50" | "last100";
@@ -90,17 +93,23 @@ export default function PlayerCard({ segmentKey, ...player }: Props) {
       </div>
 
       {/* Last 5 results */}
-      <div className="flex gap-1">
-        {segment.last5Results.map((r, i) => (
-          <span
-            key={i}
-            className={`px-2 py-0.5 text-xs font-bold rounded ${
-              r === "W" ? "bg-green-600" : "bg-red-600"
-            }`}
-          >
-            {r}
-          </span>
-        ))}
+
+      <div className="flex items-center justify-between">
+        <div className="flex gap-1">
+          {segment.last5Results.map((r, i) => (
+            <span
+              key={i}
+              className={`px-2 py-0.5 text-xs font-bold rounded ${
+                r === "W" ? "bg-green-600" : "bg-red-600"
+              }`}
+            >
+              {r}
+            </span>
+          ))}
+        </div>
+        <div className="text-xs text-gray-400 whitespace-nowrap mr-26">
+          Last played: {dayjs(player.lastActive).fromNow()}
+        </div>
       </div>
     </div>
   );

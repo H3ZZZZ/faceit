@@ -15,6 +15,7 @@ public class PlayerStatsDTO {
     private String country;
     private int skillLevel;
     private int faceitElo;
+    private long lastActive;
 
     private GameSegmentStats last10;
     private GameSegmentStats last30;
@@ -25,6 +26,7 @@ public class PlayerStatsDTO {
     {
         PlayerStatsDTO dto = new PlayerStatsDTO();
         dto.playerId = playerId;
+        dto.lastActive = matches.isEmpty() ? 0 : matches.get(0).getCreatedAt();
 
         String nickname = matches.isEmpty() ? "Unknown" : matches.get(0).getNickname();
         dto.nickname = nickname;
@@ -99,6 +101,7 @@ public class PlayerStatsDTO {
     public String getCountry() { return country; }
     public int getSkillLevel() { return skillLevel; }
     public int getFaceitElo() { return faceitElo; }
+    public long getLastActive() { return lastActive; }
     public GameSegmentStats getLast10() { return last10; }
     public GameSegmentStats getLast30() { return last30; }
     public GameSegmentStats getLast50() { return last50; }
@@ -108,6 +111,7 @@ public class PlayerStatsDTO {
     public void setCountry(String country) { this.country = country; }
     public void setSkillLevel(int skillLevel) { this.skillLevel = skillLevel; }
     public void setFaceitElo(int faceitElo) { this.faceitElo = faceitElo; }
+    public void setLastActive(long lastActive) { this.lastActive = lastActive; }
 
     public static class GameSegmentStats {
         private double averageKd;

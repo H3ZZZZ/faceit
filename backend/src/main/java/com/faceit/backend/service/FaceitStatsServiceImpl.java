@@ -57,6 +57,8 @@ public class FaceitStatsServiceImpl implements FaceitStatsService {
                 last5Results.add(won ? "W" : "L");
             } catch (Exception ignored) {}
         }
+
+        // Set last active
         Collections.reverse(last5Results);
 
         FaceitPlayerInfo playerInfo = fetchPlayerInfo(playerId);

@@ -2,10 +2,14 @@ package com.faceit.backend.service.util;
 
 import com.faceit.backend.model.FaceitMatchStatsResponse.MatchInnerStats;
 import com.faceit.backend.model.FaceitMatchStatsResponse.MatchStats;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class FaceitLifetimeAggregator {
+
+    private static final Logger logger = LoggerFactory.getLogger(FaceitLifetimeAggregator.class);
 
     public record LifetimeStats(
             int matchesPlayed,
@@ -33,10 +37,13 @@ public class FaceitLifetimeAggregator {
     ) {}
 
     public static LifetimeStats aggregate(List<MatchStats> matches) {
-        if (matches == null || matches.isEmpty()) return new LifetimeStats(0, 0, 0, 0, 0, 0, 0, 0, 0, null, 0, null, 0, 0, 0, null, 0, null, 0, null, 0, null);
+        if (matches == null || matches.isEmpty())
+            return new LifetimeStats(0, 0, 0, 0, 0, 0, 0, 0, 0, null, 0, null, 0, 0, 0, null, 0, null, 0, null, 0, null);
 
         double totalKd = 0, totalKr = 0, totalAdr = 0, totalHs = 0;
-        int wins = 0, kills, mostKills = Integer.MIN_VALUE, fewestKills = Integer.MAX_VALUE;
+        int validKdCount = 0, validKrCount = 0, validAdrCount = 0, validHsCount = 0;
+
+        int wins = 0, mostKills = Integer.MIN_VALUE, fewestKills = Integer.MAX_VALUE;
         String mostKillsMatchId = "", fewestKillsMatchId = "";
         int eloStart = Integer.parseInt(matches.get(matches.size() - 1).getElo());
         int eloEnd = Integer.parseInt(matches.get(0).getElo());
@@ -50,22 +57,69 @@ public class FaceitLifetimeAggregator {
         double highestKd = Double.MIN_VALUE, lowestKd = Double.MAX_VALUE;
         String highestKdMatchId = "", lowestKdMatchId = "";
 
-        for (MatchStats m : matches) {
+        for (int i = 0; i < matches.size(); i++) {
+            MatchStats m = matches.get(i);
+            MatchInnerStats s = m.getStats();
+            String matchId = m.getMatchId();
+
             try {
-                MatchInnerStats s = m.getStats();
+                String kdRaw = s.getKdRatio();
+                if (kdRaw != null) {
+                    double kd = Double.parseDouble(kdRaw.trim());
+                    totalKd += kd;
+                    validKdCount++;
+                    if (kd > highestKd) {
+                        highestKd = kd;
+                        highestKdMatchId = matchId;
+                    }
+                    if (kd < lowestKd) {
+                        lowestKd = kd;
+                        lowestKdMatchId = matchId;
+                    }
+                }
 
-                double kd = Double.parseDouble(s.getKdRatio());
-                double kr = Double.parseDouble(s.getKrRatio());
-                double adr = Double.parseDouble(s.getAdr());
-                double hs = Double.parseDouble(s.getHeadshotsPercent());
-                int killCount = Integer.parseInt(s.getKills());
+                String krRaw = s.getKrRatio();
+                if (krRaw != null) {
+                    double kr = Double.parseDouble(krRaw.trim());
+                    totalKr += kr;
+                    validKrCount++;
+                    if (kr > highestKr) {
+                        highestKr = kr;
+                        highestKrMatchId = matchId;
+                    }
+                    if (kr < lowestKr) {
+                        lowestKr = kr;
+                        lowestKrMatchId = matchId;
+                    }
+                }
 
-                totalKd += kd;
-                totalKr += kr;
-                totalAdr += adr;
-                totalHs += hs;
+                String adrRaw = s.getAdr();
+                if (adrRaw != null) {
+                    double adr = Double.parseDouble(adrRaw.trim());
+                    totalAdr += adr;
+                    validAdrCount++;
+                }
 
-                boolean win = "1".equals(s.getResult());
+                String hsRaw = s.getHeadshotsPercent();
+                if (hsRaw != null) {
+                    double hs = Double.parseDouble(hsRaw.trim());
+                    totalHs += hs;
+                    validHsCount++;
+                }
+
+                String killsRaw = s.getKills();
+                int killCount = (killsRaw != null) ? Integer.parseInt(killsRaw.trim()) : 0;
+                if (killCount > mostKills) {
+                    mostKills = killCount;
+                    mostKillsMatchId = matchId;
+                }
+                if (killCount < fewestKills) {
+                    fewestKills = killCount;
+                    fewestKillsMatchId = matchId;
+                }
+
+                String result = s.getResult();
+                boolean win = "1".equals(result);
                 if (win) {
                     wins++;
                     currentWinStreak++;
@@ -77,37 +131,12 @@ public class FaceitLifetimeAggregator {
                     maxLossStreak = Math.max(maxLossStreak, currentLossStreak);
                 }
 
-                if (killCount > mostKills) {
-                    mostKills = killCount;
-                    mostKillsMatchId = m.getMatchId();
-                }
-
-                if (killCount < fewestKills) {
-                    fewestKills = killCount;
-                    fewestKillsMatchId = m.getMatchId();
-                }
-
-                if (kr > highestKr) {
-                    highestKr = kr;
-                    highestKrMatchId = m.getMatchId();
-                }
-
-                if (kr < lowestKr) {
-                    lowestKr = kr;
-                    lowestKrMatchId = m.getMatchId();
-                }
-
-                if (kd > highestKd) {
-                    highestKd = kd;
-                    highestKdMatchId = m.getMatchId();
-                }
-
-                if (kd < lowestKd) {
-                    lowestKd = kd;
-                    lowestKdMatchId = m.getMatchId();
-                }
-
-            } catch (Exception ignored) {}
+            } catch (NumberFormatException e) {
+                logger.warn("Skipped one or more stats for match index {} [matchId={}] due to parse error: {}", i, matchId, e.getMessage());
+                logger.debug("Raw data: kd='{}', kr='{}', adr='{}', hs='{}', kills='{}'", s.getKdRatio(), s.getKrRatio(), s.getAdr(), s.getHeadshotsPercent(), s.getKills());
+            } catch (Exception e) {
+                logger.warn("Unexpected error in match index {} [matchId={}]: {}", i, matchId, e.toString());
+            }
         }
 
         int totalMatches = matches.size();
@@ -118,10 +147,10 @@ public class FaceitLifetimeAggregator {
                 wins,
                 losses,
                 eloEnd - eloStart,
-                round(totalKd / totalMatches, 2),
-                round(totalKr / totalMatches, 2),
-                round(totalAdr / totalMatches, 2),
-                round(totalHs / totalMatches, 2),
+                round(validKdCount > 0 ? totalKd / validKdCount : 0, 2),
+                round(validKrCount > 0 ? totalKr / validKrCount : 0, 2),
+                round(validAdrCount > 0 ? totalAdr / validAdrCount : 0, 2),
+                round(validHsCount > 0 ? totalHs / validHsCount : 0, 2),
                 mostKills,
                 mostKillsMatchId,
                 fewestKills,
@@ -174,14 +203,14 @@ public class FaceitLifetimeAggregator {
                     } else if ("0".equals(result)) {
                         current.setEloGain(-25);
                     } else {
-                        current.setEloGain(null); // fallback hvis result er tomt
+                        current.setEloGain(null);
                     }
                 } else {
                     current.setEloGain(eloGain);
                 }
 
             } else {
-                current.setEloGain(null); // kunne ikke finde gyldig "before elo"
+                current.setEloGain(null);
             }
         }
     }
@@ -193,7 +222,4 @@ public class FaceitLifetimeAggregator {
             return null;
         }
     }
-
-
-
 }
