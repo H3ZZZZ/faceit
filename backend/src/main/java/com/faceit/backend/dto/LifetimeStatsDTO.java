@@ -26,13 +26,23 @@ public class LifetimeStatsDTO {
     private String highestKdMatchId;
     private double lowestKd;
     private String lowestKdMatchId;
+    private int totalEloGain;
+
+    // 🆕 New fields:
+    private int kavg;
+    private int aavg;
+    private int davg;
+    private List<String> last5Results;
+
+    // 🔁 Existing fields (like avatar, country, etc.)
     private String avatar;
     private String country;
     private int faceitElo;
     private int skillLevel;
     private String game_player_id;
     private String nickname;
-    private int totalEloGain;
+
+    // 🔁 Map stats
     private List<MapStatsDTO> mapStats;
 
 
@@ -133,6 +143,18 @@ public class LifetimeStatsDTO {
     public void setWinrate(int winrate) {
         this.winrate = winrate;
     }
+    public int getKavg() { return kavg; }
+    public void setKavg(int kavg) { this.kavg = kavg; }
+
+    public int getAavg() { return aavg; }
+    public void setAavg(int aavg) { this.aavg = aavg; }
+
+    public int getDavg() { return davg; }
+    public void setDavg(int davg) { this.davg = davg; }
+
+    public List<String> getLast5Results() { return last5Results; }
+    public void setLast5Results(List<String> last5Results) { this.last5Results = last5Results; }
+
 
 
 }

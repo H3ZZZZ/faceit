@@ -1,5 +1,7 @@
 package com.faceit.backend.dto;
 
+import java.util.List;
+
 public class MapStatsDTO {
     private String map;
     private int matches;
@@ -11,6 +13,15 @@ public class MapStatsDTO {
     private double avgAdr;
     private double avgHsPercent;
     private int totalEloGain;
+
+    // 🆕 New fields:
+    private int kavg;
+    private int aavg;
+    private int davg;
+    private int longestWinStreak;
+    private int longestLossStreak;
+    private List<String> last5Results;
+
 
     // Getters and setters
     public String getMap() {
@@ -72,6 +83,42 @@ public class MapStatsDTO {
     }
     public void setWinrate(int winrate) {
         this.winrate = winrate;
+    }
+    public int getKavg() {
+        return kavg;
+    }
+    public void setKavg(int kavg) {
+        this.kavg = kavg;
+    }
+    public int getAavg() {
+        return aavg;
+    }
+    public void setAavg(int aavg) {
+        this.aavg = aavg;
+    }
+    public int getDavg() {
+        return davg;
+    }
+    public void setDavg(int davg) {
+        this.davg = davg;
+    }
+    public int getLongestWinStreak() {
+        return longestWinStreak;
+    }
+    public void setLongestWinStreak(int longestWinStreak) {
+        this.longestWinStreak = longestWinStreak;
+    }
+    public int getLongestLossStreak() {
+        return longestLossStreak;
+    }
+    public void setLongestLossStreak(int longestLossStreak) {
+        this.longestLossStreak = longestLossStreak;
+    }
+    public List<String> getLast5Results() {
+        return last5Results;
+    }
+    public void setLast5Results(List<String> last5Results) {
+        this.last5Results = last5Results;
     }
 
 }

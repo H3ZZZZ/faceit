@@ -125,13 +125,10 @@ public class FaceitLifetimeStatsServiceImpl implements FaceitLifetimeStatsServic
                 ? (int) Math.round((double) stats.totalWins() / stats.matchesPlayed() * 100)
                 : 0;
         dto.setWinrate(winrate);
-
-
-
-
-
-
-
+        dto.setKavg(stats.kavg());
+        dto.setAavg(stats.aavg());
+        dto.setDavg(stats.davg());
+        dto.setLast5Results(stats.last5Results());
         return dto;
     }
 }

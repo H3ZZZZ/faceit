@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class FaceitLifetimeAggregator {
@@ -38,24 +39,41 @@ public class FaceitLifetimeAggregator {
             double highestKd,
             String highestKdMatchId,
             double lowestKd,
-            String lowestKdMatchId
+            String lowestKdMatchId,
+            int kavg,
+            int aavg,
+            int davg,
+            List<String> last5Results
     ) {}
+
+
 
     public static LifetimeStats aggregate(List<MatchStats> matches) {
         if (matches == null || matches.isEmpty())
-            return new LifetimeStats(0,0, 0, 0, 0, 0, 0, 0, 0, 0, null, 0, null, 0, 0, 0, null, 0, null, 0, null, 0, null);
+            return new LifetimeStats(
+                    0, 0, 0, 0, 0,
+                    0, 0, 0, 0,             // avg stats
+                    0, null, 0, null,
+                    0, 0, 0, null,
+                    0, null, 0, null,
+                    0, null, 0, 0, 0,
+                    new ArrayList<>()
+            );
+
 
         double totalKd = 0, totalKr = 0, totalAdr = 0, totalHs = 0;
         int validKdCount = 0, validKrCount = 0, validAdrCount = 0, validHsCount = 0;
 
         int wins = 0, mostKills = Integer.MIN_VALUE, fewestKills = Integer.MAX_VALUE;
         String mostKillsMatchId = "", fewestKillsMatchId = "";
+        int totalKills = 0, totalAssists = 0, totalDeaths = 0;
+
         int eloStart = Integer.parseInt(matches.get(matches.size() - 1).getElo());
         int eloEnd = Integer.parseInt(matches.get(0).getElo());
 
         int totalEloGain = matches.stream()
                 .map(MatchStats::getEloGain)
-                .filter(java.util.Objects::nonNull)
+                .filter(Objects::nonNull)
                 .mapToInt(Integer::intValue)
                 .sum();
 
@@ -68,15 +86,36 @@ public class FaceitLifetimeAggregator {
         double highestKd = Double.MIN_VALUE, lowestKd = Double.MAX_VALUE;
         String highestKdMatchId = "", lowestKdMatchId = "";
 
+        List<String> last5Results = new ArrayList<>();
+
         for (int i = 0; i < matches.size(); i++) {
             MatchStats m = matches.get(i);
             MatchInnerStats s = m.getStats();
             String matchId = m.getMatchId();
 
             try {
-                String kdRaw = s.getKdRatio();
-                if (kdRaw != null) {
-                    double kd = Double.parseDouble(kdRaw.trim());
+                if (i < 5) {
+                    last5Results.add("1".equals(s.getResult()) ? "W" : "L");
+                }
+
+                int kills = parseIntSafe(s.getKills());
+                int assists = parseIntSafe(s.getAssists());
+                int deaths = parseIntSafe(s.getDeaths());
+                totalKills += kills;
+                totalAssists += assists;
+                totalDeaths += deaths;
+
+                if (kills > mostKills) {
+                    mostKills = kills;
+                    mostKillsMatchId = matchId;
+                }
+                if (kills < fewestKills) {
+                    fewestKills = kills;
+                    fewestKillsMatchId = matchId;
+                }
+
+                double kd = parseDoubleSafe(s.getKdRatio());
+                if (kd >= 0) {
                     totalKd += kd;
                     validKdCount++;
                     if (kd > highestKd) {
@@ -89,9 +128,8 @@ public class FaceitLifetimeAggregator {
                     }
                 }
 
-                String krRaw = s.getKrRatio();
-                if (krRaw != null) {
-                    double kr = Double.parseDouble(krRaw.trim());
+                double kr = parseDoubleSafe(s.getKrRatio());
+                if (kr >= 0) {
                     totalKr += kr;
                     validKrCount++;
                     if (kr > highestKr) {
@@ -104,33 +142,19 @@ public class FaceitLifetimeAggregator {
                     }
                 }
 
-                String adrRaw = s.getAdr();
-                if (adrRaw != null) {
-                    double adr = Double.parseDouble(adrRaw.trim());
+                double adr = parseDoubleSafe(s.getAdr());
+                if (adr >= 0) {
                     totalAdr += adr;
                     validAdrCount++;
                 }
 
-                String hsRaw = s.getHeadshotsPercent();
-                if (hsRaw != null) {
-                    double hs = Double.parseDouble(hsRaw.trim());
+                double hs = parseDoubleSafe(s.getHeadshotsPercent());
+                if (hs >= 0) {
                     totalHs += hs;
                     validHsCount++;
                 }
 
-                String killsRaw = s.getKills();
-                int killCount = (killsRaw != null) ? Integer.parseInt(killsRaw.trim()) : 0;
-                if (killCount > mostKills) {
-                    mostKills = killCount;
-                    mostKillsMatchId = matchId;
-                }
-                if (killCount < fewestKills) {
-                    fewestKills = killCount;
-                    fewestKillsMatchId = matchId;
-                }
-
-                String result = s.getResult();
-                boolean win = "1".equals(result);
+                boolean win = "1".equals(s.getResult());
                 if (win) {
                     wins++;
                     currentWinStreak++;
@@ -142,11 +166,8 @@ public class FaceitLifetimeAggregator {
                     maxLossStreak = Math.max(maxLossStreak, currentLossStreak);
                 }
 
-            } catch (NumberFormatException e) {
-                logger.warn("Skipped one or more stats for match index {} [matchId={}] due to parse error: {}", i, matchId, e.getMessage());
-                logger.debug("Raw data: kd='{}', kr='{}', adr='{}', hs='{}', kills='{}'", s.getKdRatio(), s.getKrRatio(), s.getAdr(), s.getHeadshotsPercent(), s.getKills());
             } catch (Exception e) {
-                logger.warn("Unexpected error in match index {} [matchId={}]: {}", i, matchId, e.toString());
+                logger.warn("Error parsing match: {}", e.getMessage());
             }
         }
 
@@ -162,7 +183,7 @@ public class FaceitLifetimeAggregator {
                 round(validKdCount > 0 ? totalKd / validKdCount : 0, 2),
                 round(validKrCount > 0 ? totalKr / validKrCount : 0, 2),
                 round(validAdrCount > 0 ? totalAdr / validAdrCount : 0, 2),
-                round(validHsCount > 0 ? totalHs / validHsCount : 0, 2),
+                (int) Math.round(validHsCount > 0 ? totalHs / validHsCount : 0),
                 mostKills,
                 mostKillsMatchId,
                 fewestKills,
@@ -176,7 +197,11 @@ public class FaceitLifetimeAggregator {
                 round(highestKd, 2),
                 highestKdMatchId,
                 round(lowestKd, 2),
-                lowestKdMatchId
+                lowestKdMatchId,
+                totalKills / totalMatches,
+                totalAssists / totalMatches,
+                totalDeaths / totalMatches,
+                last5Results
         );
     }
 
@@ -234,6 +259,22 @@ public class FaceitLifetimeAggregator {
             return null;
         }
     }
+    private static double parseDoubleSafe(String val) {
+        try {
+            return val != null ? Double.parseDouble(val) : -1;
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    private static int parseIntSafe(String val) {
+        try {
+            return val != null ? Integer.parseInt(val) : 0;
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
     public static List<MapStatsDTO> aggregateByMap(List<MatchStats> matches) {
         Map<String, List<MatchStats>> byMap = matches.stream()
                 .collect(Collectors.groupingBy(m -> m.getStats().getMap()));
@@ -247,49 +288,93 @@ public class FaceitLifetimeAggregator {
             int wins = 0, totalElo = 0;
             double totalKd = 0, totalKr = 0, totalAdr = 0, totalHs = 0;
             int kdCount = 0, krCount = 0, adrCount = 0, hsCount = 0;
+            int totalKills = 0, totalAssists = 0, totalDeaths = 0;
 
-            for (MatchStats m : mapMatches) {
-                var s = m.getStats();
+            int currentWinStreak = 0, currentLossStreak = 0;
+            int maxWinStreak = 0, maxLossStreak = 0;
 
-                if ("1".equals(s.getResult())) wins++;
+            List<String> last5Results = new ArrayList<>();
+
+            for (int i = 0; i < mapMatches.size(); i++) {
+                MatchStats m = mapMatches.get(i);
+                MatchInnerStats s = m.getStats();
+
+                if (i < 5) {
+                    last5Results.add("1".equals(s.getResult()) ? "W" : "L");
+                }
+
+                boolean win = "1".equals(s.getResult());
+                if (win) {
+                    wins++;
+                    currentWinStreak++;
+                    currentLossStreak = 0;
+                    maxWinStreak = Math.max(maxWinStreak, currentWinStreak);
+                } else {
+                    currentLossStreak++;
+                    currentWinStreak = 0;
+                    maxLossStreak = Math.max(maxLossStreak, currentLossStreak);
+                }
 
                 totalElo += m.getEloGain() != null ? m.getEloGain() : 0;
 
                 try {
-                    if (s.getKdRatio() != null) {
-                        totalKd += Double.parseDouble(s.getKdRatio());
+                    int kills = parseIntSafe(s.getKills());
+                    int assists = parseIntSafe(s.getAssists());
+                    int deaths = parseIntSafe(s.getDeaths());
+                    totalKills += kills;
+                    totalAssists += assists;
+                    totalDeaths += deaths;
+
+                    double kd = parseDoubleSafe(s.getKdRatio());
+                    if (kd >= 0) {
+                        totalKd += kd;
                         kdCount++;
                     }
-                    if (s.getKrRatio() != null) {
-                        totalKr += Double.parseDouble(s.getKrRatio());
+
+                    double kr = parseDoubleSafe(s.getKrRatio());
+                    if (kr >= 0) {
+                        totalKr += kr;
                         krCount++;
                     }
-                    if (s.getAdr() != null) {
-                        totalAdr += Double.parseDouble(s.getAdr());
+
+                    double adr = parseDoubleSafe(s.getAdr());
+                    if (adr >= 0) {
+                        totalAdr += adr;
                         adrCount++;
                     }
-                    if (s.getHeadshotsPercent() != null) {
-                        totalHs += Double.parseDouble(s.getHeadshotsPercent());
+
+                    double hs = parseDoubleSafe(s.getHeadshotsPercent());
+                    if (hs >= 0) {
+                        totalHs += hs;
                         hsCount++;
                     }
+
                 } catch (NumberFormatException ignored) {}
             }
 
+            int matchCount = mapMatches.size();
+            int losses = matchCount - wins;
+
             MapStatsDTO dto = new MapStatsDTO();
             dto.setMap(map);
-            dto.setMatches(mapMatches.size());
+            dto.setMatches(matchCount);
             dto.setWins(wins);
-            dto.setLosses(mapMatches.size() - wins);
+            dto.setLosses(losses);
             dto.setTotalEloGain(totalElo);
-
-            int winrate = mapMatches.size() > 0 ? (int) Math.round((double) wins / mapMatches.size() * 100) : 0;
-            dto.setWinrate(winrate);
+            dto.setWinrate(matchCount > 0 ? (int) Math.round((double) wins / matchCount * 100) : 0);
 
             dto.setAvgKd(kdCount > 0 ? round(totalKd / kdCount, 2) : 0);
             dto.setAvgKr(krCount > 0 ? round(totalKr / krCount, 2) : 0);
             dto.setAvgAdr(adrCount > 0 ? round(totalAdr / adrCount, 2) : 0);
-            dto.setAvgHsPercent(hsCount > 0 ? round(totalHs / hsCount, 2) : 0);
+            dto.setAvgHsPercent(hsCount > 0 ? (int) Math.round(totalHs / hsCount) : 0);
 
+            dto.setKavg(matchCount > 0 ? totalKills / matchCount : 0);
+            dto.setAavg(matchCount > 0 ? totalAssists / matchCount : 0);
+            dto.setDavg(matchCount > 0 ? totalDeaths / matchCount : 0);
+
+            dto.setLongestWinStreak(maxWinStreak);
+            dto.setLongestLossStreak(maxLossStreak);
+            dto.setLast5Results(last5Results);
 
             result.add(dto);
         }
