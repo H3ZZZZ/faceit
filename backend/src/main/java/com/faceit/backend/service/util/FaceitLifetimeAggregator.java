@@ -68,8 +68,29 @@ public class FaceitLifetimeAggregator {
         String mostKillsMatchId = "", fewestKillsMatchId = "";
         int totalKills = 0, totalAssists = 0, totalDeaths = 0;
 
-        int eloStart = Integer.parseInt(matches.get(matches.size() - 1).getElo());
-        int eloEnd = Integer.parseInt(matches.get(0).getElo());
+        Integer eloStart = null;
+        Integer eloEnd = null;
+
+// Find first non-null ELO (earliest match)
+        for (int i = matches.size() - 1; i >= 0; i--) {
+            String elo = matches.get(i).getElo();
+            if (elo != null) {
+                eloStart = Integer.parseInt(elo);
+                break;
+            }
+        }
+
+// Find last non-null ELO (latest match)
+        for (MatchStats match : matches) {
+            String elo = match.getElo();
+            if (elo != null) {
+                eloEnd = Integer.parseInt(elo);
+                break;
+            }
+        }
+
+        if (eloStart == null) eloStart = 0;
+        if (eloEnd == null) eloEnd = 0;
 
         int totalEloGain = matches.stream()
                 .map(MatchStats::getEloGain)
