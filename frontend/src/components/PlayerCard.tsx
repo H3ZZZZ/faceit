@@ -88,7 +88,7 @@ export default function PlayerCard({ segmentKey, ...player }: Props) {
         <div>K/D: {segment.averageKd.toFixed(2)}</div>
         <div>K/R: {segment.averageKr.toFixed(2)}</div>
         <div>ADR: {segment.averageAdr.toFixed(1)}</div>
-        <div>HS%: {segment.averageHsPercent}%</div>
+        <div>HS: {segment.averageHsPercent}%</div>
         <div>
           K/A/D: {segment.kavg} / {segment.aavg} / {segment.davg}
         </div>

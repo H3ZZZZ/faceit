@@ -2,6 +2,8 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { fetchPlayerByNickname } from "../api/api";
 import type { PlayerStatsFull } from "../types/PlayerStatsFull";
+import LifetimeStatsCard from "../components/PlayerDetails/LifetimeStatsCard";
+import PerformanceHighlights from "../components/PlayerDetails/PerformanceHighlights";
 
 export default function PlayerDetails() {
   const { nickname } = useParams();
@@ -16,49 +18,36 @@ export default function PlayerDetails() {
       .catch(() => setError("Player not found or error loading data."));
   }, [nickname]);
 
-  if (error) return <div className="text-red-500 p-4">{error}</div>;
-  if (!data) return <div className="text-white p-4">Loading...</div>;
+  if (error)
+    return (
+      <div className="text-red-500 text-center mt-10 text-lg">{error}</div>
+    );
+  if (!data)
+    return (
+      <div className="text-white text-center mt-10 text-lg">Loading...</div>
+    );
 
   return (
-    <div className="text-white max-w-4xl mx-auto mt-10 p-4 bg-[#1e1e1e] rounded-lg">
-      <div className="flex items-center gap-4 mb-4">
-        <img
-          src={data.avatar}
-          alt="avatar"
-          className="w-14 h-14 rounded-full border"
-        />
-        <div>
-          <h2 className="text-xl font-bold">{data.nickname}</h2>
-          <p className="text-sm text-gray-400">
-            ELO: {data.faceitElo} (lvl {data.skillLevel})
-          </p>
-        </div>
+    <div className="text-white max-w-5xl mx-auto mt-10 px-4 pb-10">
+      {/* Page Title */}
+      <h1 className="text-3xl font-bold mb-6 text-center text-orange-400">
+        All-Time CS2 Stats
+      </h1>
+
+      <LifetimeStatsCard data={data} />
+      <PerformanceHighlights data={data} />
+
+      {/* Notice about data limitations */}
+      <div className="mt-6 text-sm text-gray-400 text-center max-w-2xl mx-auto">
+        ⚠️ Note: Due to ELO resets, smurf activity, or missing match data, small
+        discrepancies may occur in the total ELO calculations. We aim for
+        accuracy but cannot guarantee 100%.
       </div>
 
-      <div className="grid grid-cols-2 gap-4 text-sm">
-        <p>Matches: {data.matchesPlayed}</p>
-        <p>Winrate: {data.winrate}%</p>
-        <p>K/D: {data.avgKd.toFixed(2)}</p>
-        <p>K/R: {data.avgKr.toFixed(2)}</p>
-        <p>ADR: {data.avgAdr.toFixed(1)}</p>
-        <p>HS%: {data.avgHsPercent}%</p>
-        <p>K/A/D: {data.kavg} / {data.aavg} / {data.davg}</p>
-        <p>Elo Δ: {data.eloChange >= 0 ? "+" : ""}{data.eloChange}</p>
-      </div>
-
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-2">Last 5 Results</h3>
-        <div className="flex gap-1">
-          {data.last5Results.map((r, i) => (
-            <span
-              key={i}
-              className={`px-2 py-1 text-xs rounded font-bold ${
-                r === "W" ? "bg-green-600" : "bg-red-600"
-              }`}
-            >
-              {r}
-            </span>
-          ))}
+      {/* Footer Callout */}
+      <div className="mt-10 text-center">
+        <div className="inline-block bg-yellow-500 text-black px-4 py-2 rounded shadow-md text-sm font-semibold animate-pulse">
+          🚧 More stats are coming soon – stay tuned!
         </div>
       </div>
     </div>
