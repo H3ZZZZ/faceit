@@ -26,7 +26,7 @@ export default function PlayerCard({ segmentKey, ...player }: Props) {
         {icons.map((icon, i) => (
           <img
             key={i}
-            src={`/icons/${icon}.png`} // points to public/icons/
+            src={`/icons/${icon}.png`}
             alt={icon}
             className="w-8 h-8 object-contain"
           />
@@ -43,7 +43,9 @@ export default function PlayerCard({ segmentKey, ...player }: Props) {
           />
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="font-semibold text-lg">{player.nickname}</h2>
+              <h2 className="font-semibold text-lg text-orange-400">
+                {player.nickname}
+              </h2>
               <img
                 src={`https://flagcdn.com/24x18/${player.country.toLowerCase()}.png`}
                 alt={player.country}
@@ -93,7 +95,6 @@ export default function PlayerCard({ segmentKey, ...player }: Props) {
       </div>
 
       {/* Last 5 results */}
-
       <div className="flex items-center justify-between">
         <div className="flex gap-1">
           {segment.last5Results.map((r, i) => (

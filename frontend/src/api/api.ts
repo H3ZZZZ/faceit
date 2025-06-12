@@ -1,4 +1,5 @@
 import type { PlayerStats } from "../types/PlayerStats";
+import type { PlayerStatsFull } from "../types/PlayerStatsFull";
 
 const API_BASE = `${import.meta.env.VITE_API_BASE_URL}`;
 
@@ -24,7 +25,17 @@ const PLAYER_IDS = [
 
 export async function fetchAllPlayerStats(): Promise<PlayerStats[]> {
   const responses = await Promise.all(
-    PLAYER_IDS.map((id) => fetch(`${API_BASE}/${id}`).then((res) => res.json()))
+    PLAYER_IDS.map((id) =>
+      fetch(`${API_BASE}/stats/${id}`).then((res) => res.json())
+    )
   );
   return responses;
+}
+
+export async function fetchPlayerByNickname(
+  nickname: string
+): Promise<PlayerStatsFull> {
+  const res = await fetch(`${API_BASE}/lifetime-stats/by-nickname/${nickname}`);
+  if (!res.ok) throw new Error("Player not found");
+  return await res.json();
 }
