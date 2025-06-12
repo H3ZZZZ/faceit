@@ -6,11 +6,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FaceitPlayerInfo {
 
+
     private String avatar;
     private String country;
 
     @JsonProperty("games")
     private Games games;
+
+
+    @JsonProperty("player_id")
+    private String playerId;
+
+    public String getPlayerId() {
+        return playerId;
+    }
 
     public String getAvatar() { return avatar; }
     public String getCountry() { return country; }
@@ -19,6 +28,9 @@ public class FaceitPlayerInfo {
     }
     public int getFaceitElo() {
         return games != null && games.cs2 != null ? games.cs2.faceitElo : 0;
+    }
+    public String getGamePlayerId() {
+        return games != null && games.cs2 != null ? games.cs2.gamePlayerId : null;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -34,5 +46,8 @@ public class FaceitPlayerInfo {
 
         @JsonProperty("faceit_elo")
         private int faceitElo;
+
+        @JsonProperty("game_player_id")
+        private String gamePlayerId;
     }
 }

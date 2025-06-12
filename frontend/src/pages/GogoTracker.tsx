@@ -5,7 +5,9 @@ import PlayerCard from "../components/PlayerCard";
 
 export default function GogoTracker() {
   const { data, loading } = usePlayerData();
-  const [segmentKey, setSegmentKey] = useState<"last10" | "last30" | "last50" | "last100">("last30");
+  const [segmentKey, setSegmentKey] = useState<
+    "last10" | "last30" | "last50" | "last100"
+  >("last30");
 
   return (
     <main className="min-h-screen p-6 overflow-x-hidden overflow-y-auto">
@@ -28,7 +30,9 @@ export default function GogoTracker() {
 
       {/* Stats grid */}
       {loading ? (
-        <div className="text-center text-white">Loading stats...</div>
+        <div className="text-center text-white">
+          Loading stats... Server is sometimes a little slow
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
           {data!.map((player) => (

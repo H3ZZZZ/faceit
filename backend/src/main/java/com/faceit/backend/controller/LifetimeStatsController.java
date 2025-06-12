@@ -20,4 +20,11 @@ public class LifetimeStatsController {
         LifetimeStatsDTO stats = lifetimeStatsService.getLifetimeStats(playerId);
         return ResponseEntity.ok(stats);
     }
+
+    @GetMapping("/by-nickname/{nickname}")
+    public ResponseEntity<LifetimeStatsDTO> getLifetimeStatsByNickname(@PathVariable String nickname) {
+        LifetimeStatsDTO stats = lifetimeStatsService.getLifetimeStatsByNickname(nickname);
+        return ResponseEntity.ok(stats);
+    }
+
 }

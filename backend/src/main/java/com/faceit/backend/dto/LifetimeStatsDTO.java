@@ -1,9 +1,12 @@
 package com.faceit.backend.dto;
 
+import java.util.List;
+
 public class LifetimeStatsDTO {
     private int matchesPlayed;
     private int totalWins;
     private int totalLosses;
+    private int winrate;
     private int eloChange;
     private double avgKd;
     private double avgKr;
@@ -23,6 +26,29 @@ public class LifetimeStatsDTO {
     private String highestKdMatchId;
     private double lowestKd;
     private String lowestKdMatchId;
+    private int totalEloGain;
+
+    // 🆕 New fields:
+    private int kavg;
+    private int aavg;
+    private int davg;
+    private List<String> last5Results;
+
+    // 🔁 Existing fields (like avatar, country, etc.)
+    private String avatar;
+    private String country;
+    private int faceitElo;
+    private int skillLevel;
+    private String game_player_id;
+    private String nickname;
+
+    // 🔁 Map stats
+    private List<MapStatsDTO> mapStats;
+
+
+    public List<MapStatsDTO> getMapStats() { return mapStats; }
+    public void setMapStats(List<MapStatsDTO> mapStats) { this.mapStats = mapStats; }
+
 
 
 
@@ -89,5 +115,46 @@ public class LifetimeStatsDTO {
 
     public String getLowestKrMatchId() { return lowestKrMatchId; }
     public void setLowestKrMatchId(String lowestKrMatchId) { this.lowestKrMatchId = lowestKrMatchId; }
+
+    public String getAvatar() { return avatar; }
+    public void setAvatar(String avatar) { this.avatar = avatar; }
+
+    public String getCountry() { return country; }
+    public void setCountry(String country) { this.country = country; }
+
+    public int getFaceitElo() { return faceitElo; }
+    public void setFaceitElo(int faceitElo) { this.faceitElo = faceitElo; }
+
+    public int getSkillLevel() { return skillLevel; }
+    public void setSkillLevel(int skillLevel) { this.skillLevel = skillLevel; }
+
+    public String getGame_player_id() { return game_player_id; }
+    public void setGame_player_id(String game_player_id) { this.game_player_id = game_player_id; }
+
+    public String getNickname() { return nickname; }
+    public void setNickname(String nickname) { this.nickname = nickname; }
+
+    public int getTotalEloGain() { return totalEloGain; }
+    public void setTotalEloGain(int totalEloGain) { this.totalEloGain = totalEloGain;}
+
+    public int getWinrate() {
+        return winrate;
+    }
+    public void setWinrate(int winrate) {
+        this.winrate = winrate;
+    }
+    public int getKavg() { return kavg; }
+    public void setKavg(int kavg) { this.kavg = kavg; }
+
+    public int getAavg() { return aavg; }
+    public void setAavg(int aavg) { this.aavg = aavg; }
+
+    public int getDavg() { return davg; }
+    public void setDavg(int davg) { this.davg = davg; }
+
+    public List<String> getLast5Results() { return last5Results; }
+    public void setLast5Results(List<String> last5Results) { this.last5Results = last5Results; }
+
+
 
 }

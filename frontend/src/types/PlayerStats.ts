@@ -22,6 +22,7 @@ export type PlayerStats = {
   country: string;
   skillLevel: number;
   faceitElo: number;
+  lastActive: number;
   last10: StatSegment;
   last30: StatSegment;
   last50: StatSegment;

@@ -1,6 +1,7 @@
 package com.faceit.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 
 import java.util.List;
 
@@ -16,6 +17,12 @@ public class FaceitMatchStatsResponse {
     public static class MatchStats {
         @JsonProperty("i6")
         private String kills;
+
+        @JsonProperty("created_at")
+        private long createdAt;
+
+        @JsonProperty("i1")
+        private String map;
 
         @JsonProperty("i7")
         private String assists;
@@ -50,6 +57,16 @@ public class FaceitMatchStatsResponse {
         @JsonProperty("date")
         private long date;
 
+        public Integer eloGain;
+
+        public Integer getEloGain() {
+            return eloGain;
+        }
+
+        public void setEloGain(Integer eloGain) {
+            this.eloGain = eloGain;
+        }
+
         public long getDate() {
             return date;
         }
@@ -58,8 +75,23 @@ public class FaceitMatchStatsResponse {
             return matchId;
         }
 
+        public String getMap() {
+            return map;
+        }
+
+        public long getCreatedAt() {
+            return createdAt;
+        }
+
+        public long setCreatedAt(long createdAt) {
+            this.createdAt = createdAt;
+            return createdAt;
+        }
+
+
+
         public MatchInnerStats getStats() {
-            return new MatchInnerStats(kills, assists, deaths, kdRatio, krRatio, adr, headshotsPercent, result);
+            return new MatchInnerStats(kills, assists, deaths, kdRatio, krRatio, adr, headshotsPercent, result, matchId, date, map, elo, nickname, createdAt);
         }
 
         public String getElo() {
@@ -80,8 +112,15 @@ public class FaceitMatchStatsResponse {
         private final String adr;
         private final String headshotsPercent;
         private final String result;
+        private final String matchId;
+        private final long date;
+        private final String map;
+        private final String elo;
+        private final String nickname;
+        private final long createdAt;
 
-        public MatchInnerStats(String kills, String assists, String deaths, String kdRatio, String krRatio, String adr, String headshotsPercent, String result) {
+
+        public MatchInnerStats(String kills, String assists, String deaths, String kdRatio, String krRatio, String adr, String headshotsPercent, String result, String matchId, long date, String map, String elo, String nickname, long createdAt) {
             this.kills = kills;
             this.assists = assists;
             this.deaths = deaths;
@@ -90,6 +129,12 @@ public class FaceitMatchStatsResponse {
             this.adr = adr;
             this.headshotsPercent = headshotsPercent;
             this.result = result;
+            this.matchId = matchId;
+            this.date = date;
+            this.map = map;
+            this.elo = elo;
+            this.nickname = nickname;
+            this.createdAt = createdAt;
         }
 
         public String getKills() {
@@ -122,5 +167,25 @@ public class FaceitMatchStatsResponse {
         public String getKrRatio() {
             return krRatio;
         }
+        public String getMatchId() {
+            return matchId;
+        }
+        public long getDate() {
+            return date;
+        }
+        public String getMap() {
+            return map;
+        }
+        public String getElo() {
+            return elo;
+        }
+        public String getNickname() {
+            return nickname;
+        }
+        public long getCreatedAt() {
+            return createdAt;
+        }
+
+
     }
 }

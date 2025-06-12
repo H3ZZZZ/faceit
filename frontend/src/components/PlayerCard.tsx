@@ -1,5 +1,8 @@
 import type { PlayerStats, StatSegment } from "../types/PlayerStats";
 import { getPlayerIcons } from "../utils/icons";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
 
 type Props = PlayerStats & {
   segmentKey: "last10" | "last30" | "last50" | "last100";
@@ -23,7 +26,7 @@ export default function PlayerCard({ segmentKey, ...player }: Props) {
         {icons.map((icon, i) => (
           <img
             key={i}
-            src={`/icons/${icon}.png`} // points to public/icons/
+            src={`/icons/${icon}.png`}
             alt={icon}
             className="w-8 h-8 object-contain"
           />
@@ -40,7 +43,9 @@ export default function PlayerCard({ segmentKey, ...player }: Props) {
           />
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="font-semibold text-lg">{player.nickname}</h2>
+              <h2 className="font-semibold text-lg text-orange-400">
+                {player.nickname}
+              </h2>
               <img
                 src={`https://flagcdn.com/24x18/${player.country.toLowerCase()}.png`}
                 alt={player.country}
@@ -83,24 +88,29 @@ export default function PlayerCard({ segmentKey, ...player }: Props) {
         <div>K/D: {segment.averageKd.toFixed(2)}</div>
         <div>K/R: {segment.averageKr.toFixed(2)}</div>
         <div>ADR: {segment.averageAdr.toFixed(1)}</div>
-        <div>HS%: {segment.averageHsPercent}%</div>
+        <div>HS: {segment.averageHsPercent}%</div>
         <div>
           K/A/D: {segment.kavg} / {segment.aavg} / {segment.davg}
         </div>
       </div>
 
       {/* Last 5 results */}
-      <div className="flex gap-1">
-        {segment.last5Results.map((r, i) => (
-          <span
-            key={i}
-            className={`px-2 py-0.5 text-xs font-bold rounded ${
-              r === "W" ? "bg-green-600" : "bg-red-600"
-            }`}
-          >
-            {r}
-          </span>
-        ))}
+      <div className="flex items-center justify-between">
+        <div className="flex gap-1">
+          {segment.last5Results.map((r, i) => (
+            <span
+              key={i}
+              className={`px-2 py-0.5 text-xs font-bold rounded ${
+                r === "W" ? "bg-green-600" : "bg-red-600"
+              }`}
+            >
+              {r}
+            </span>
+          ))}
+        </div>
+        <div className="text-xs text-gray-400 whitespace-nowrap mr-26">
+          Last played: {dayjs(player.lastActive).fromNow()}
+        </div>
       </div>
     </div>
   );

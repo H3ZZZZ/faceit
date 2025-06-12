@@ -2,13 +2,21 @@
 import { Link, useLocation } from "react-router-dom";
 
 const pageTitles: Record<string, string> = {
-  "/": "Search",
+  "/": "Home",
+  "/search": "Search",
   "/GogoTracker": "GOGO Tracker",
+  "/icons": "Icon Gallery",
+  "/player": "Player Stats", // for dynamic player pages
 };
 
 export default function Navbar() {
   const { pathname } = useLocation();
-  const currentTitle = pageTitles[pathname] || "";
+
+  // Match exact or prefix path (e.g., /player/Skejs)
+  const currentTitle =
+    Object.entries(pageTitles).find(
+      ([key]) => pathname === key || pathname.startsWith(key + "/")
+    )?.[1] || "";
 
   return (
     <nav className="px-6 py-4 flex items-center justify-between text-white">
@@ -18,6 +26,14 @@ export default function Navbar() {
           to="/"
           className={
             pathname === "/" ? "text-orange-400" : "hover:text-orange-400"
+          }
+        >
+          Home
+        </Link>
+        <Link
+          to="/search"
+          className={
+            pathname === "/search" ? "text-orange-400" : "hover:text-orange-400"
           }
         >
           Search
@@ -32,15 +48,15 @@ export default function Navbar() {
         >
           GOGO Tracker
         </Link>
+        <Link
+          to="/icons"
+          className={
+            pathname === "/icons" ? "text-orange-400" : "hover:text-orange-400"
+          }
+        >
+          Icons
+        </Link>
       </div>
-
-      {/* Center: Page title */}
-      <div className="absolute left-1/2 transform -translate-x-1/2 text-xl font-bold text-white">
-        {currentTitle}
-      </div>
-
-      {/* Right: empty to balance flex layout */}
-      <div className="w-24" />
     </nav>
   );
 }
