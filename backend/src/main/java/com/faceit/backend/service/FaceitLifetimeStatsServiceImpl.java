@@ -96,6 +96,7 @@ public class FaceitLifetimeStatsServiceImpl implements FaceitLifetimeStatsServic
         var stats = FaceitLifetimeAggregator.aggregate(allMatches);
 
         LifetimeStatsDTO dto = new LifetimeStatsDTO();
+
         dto.setMatchesPlayed(stats.matchesPlayed());
         dto.setTotalWins(stats.totalWins());
         dto.setTotalLosses(stats.totalLosses());
@@ -118,6 +119,16 @@ public class FaceitLifetimeStatsServiceImpl implements FaceitLifetimeStatsServic
         dto.setHighestKdMatchId(stats.highestKdMatchId());
         dto.setLowestKd(stats.lowestKd());
         dto.setLowestKdMatchId(stats.lowestKdMatchId());
+        dto.setTotalEloGain(stats.totalEloGain());
+        dto.setMapStats(FaceitLifetimeAggregator.aggregateByMap(allMatches));
+        int winrate = (stats.matchesPlayed() > 0)
+                ? (int) Math.round((double) stats.totalWins() / stats.matchesPlayed() * 100)
+                : 0;
+        dto.setWinrate(winrate);
+
+
+
+
 
 
 

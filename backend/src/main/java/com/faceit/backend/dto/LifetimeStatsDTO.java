@@ -1,9 +1,12 @@
 package com.faceit.backend.dto;
 
+import java.util.List;
+
 public class LifetimeStatsDTO {
     private int matchesPlayed;
     private int totalWins;
     private int totalLosses;
+    private int winrate;
     private int eloChange;
     private double avgKd;
     private double avgKr;
@@ -29,6 +32,12 @@ public class LifetimeStatsDTO {
     private int skillLevel;
     private String game_player_id;
     private String nickname;
+    private int totalEloGain;
+    private List<MapStatsDTO> mapStats;
+
+
+    public List<MapStatsDTO> getMapStats() { return mapStats; }
+    public void setMapStats(List<MapStatsDTO> mapStats) { this.mapStats = mapStats; }
 
 
 
@@ -114,6 +123,16 @@ public class LifetimeStatsDTO {
 
     public String getNickname() { return nickname; }
     public void setNickname(String nickname) { this.nickname = nickname; }
+
+    public int getTotalEloGain() { return totalEloGain; }
+    public void setTotalEloGain(int totalEloGain) { this.totalEloGain = totalEloGain;}
+
+    public int getWinrate() {
+        return winrate;
+    }
+    public void setWinrate(int winrate) {
+        this.winrate = winrate;
+    }
 
 
 }

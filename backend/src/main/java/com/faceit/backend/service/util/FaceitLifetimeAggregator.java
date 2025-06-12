@@ -1,17 +1,22 @@
 package com.faceit.backend.service.util;
 
+import com.faceit.backend.dto.MapStatsDTO;
 import com.faceit.backend.model.FaceitMatchStatsResponse.MatchInnerStats;
 import com.faceit.backend.model.FaceitMatchStatsResponse.MatchStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class FaceitLifetimeAggregator {
 
     private static final Logger logger = LoggerFactory.getLogger(FaceitLifetimeAggregator.class);
 
     public record LifetimeStats(
+            int totalEloGain,
             int matchesPlayed,
             int totalWins,
             int totalLosses,
@@ -38,7 +43,7 @@ public class FaceitLifetimeAggregator {
 
     public static LifetimeStats aggregate(List<MatchStats> matches) {
         if (matches == null || matches.isEmpty())
-            return new LifetimeStats(0, 0, 0, 0, 0, 0, 0, 0, 0, null, 0, null, 0, 0, 0, null, 0, null, 0, null, 0, null);
+            return new LifetimeStats(0,0, 0, 0, 0, 0, 0, 0, 0, 0, null, 0, null, 0, 0, 0, null, 0, null, 0, null, 0, null);
 
         double totalKd = 0, totalKr = 0, totalAdr = 0, totalHs = 0;
         int validKdCount = 0, validKrCount = 0, validAdrCount = 0, validHsCount = 0;
@@ -47,6 +52,12 @@ public class FaceitLifetimeAggregator {
         String mostKillsMatchId = "", fewestKillsMatchId = "";
         int eloStart = Integer.parseInt(matches.get(matches.size() - 1).getElo());
         int eloEnd = Integer.parseInt(matches.get(0).getElo());
+
+        int totalEloGain = matches.stream()
+                .map(MatchStats::getEloGain)
+                .filter(java.util.Objects::nonNull)
+                .mapToInt(Integer::intValue)
+                .sum();
 
         int currentWinStreak = 0, currentLossStreak = 0;
         int maxWinStreak = 0, maxLossStreak = 0;
@@ -143,6 +154,7 @@ public class FaceitLifetimeAggregator {
         int losses = totalMatches - wins;
 
         return new LifetimeStats(
+                totalEloGain,
                 totalMatches,
                 wins,
                 losses,
@@ -222,4 +234,67 @@ public class FaceitLifetimeAggregator {
             return null;
         }
     }
+    public static List<MapStatsDTO> aggregateByMap(List<MatchStats> matches) {
+        Map<String, List<MatchStats>> byMap = matches.stream()
+                .collect(Collectors.groupingBy(m -> m.getStats().getMap()));
+
+        List<MapStatsDTO> result = new ArrayList<>();
+
+        for (var entry : byMap.entrySet()) {
+            String map = entry.getKey();
+            List<MatchStats> mapMatches = entry.getValue();
+
+            int wins = 0, totalElo = 0;
+            double totalKd = 0, totalKr = 0, totalAdr = 0, totalHs = 0;
+            int kdCount = 0, krCount = 0, adrCount = 0, hsCount = 0;
+
+            for (MatchStats m : mapMatches) {
+                var s = m.getStats();
+
+                if ("1".equals(s.getResult())) wins++;
+
+                totalElo += m.getEloGain() != null ? m.getEloGain() : 0;
+
+                try {
+                    if (s.getKdRatio() != null) {
+                        totalKd += Double.parseDouble(s.getKdRatio());
+                        kdCount++;
+                    }
+                    if (s.getKrRatio() != null) {
+                        totalKr += Double.parseDouble(s.getKrRatio());
+                        krCount++;
+                    }
+                    if (s.getAdr() != null) {
+                        totalAdr += Double.parseDouble(s.getAdr());
+                        adrCount++;
+                    }
+                    if (s.getHeadshotsPercent() != null) {
+                        totalHs += Double.parseDouble(s.getHeadshotsPercent());
+                        hsCount++;
+                    }
+                } catch (NumberFormatException ignored) {}
+            }
+
+            MapStatsDTO dto = new MapStatsDTO();
+            dto.setMap(map);
+            dto.setMatches(mapMatches.size());
+            dto.setWins(wins);
+            dto.setLosses(mapMatches.size() - wins);
+            dto.setTotalEloGain(totalElo);
+
+            int winrate = mapMatches.size() > 0 ? (int) Math.round((double) wins / mapMatches.size() * 100) : 0;
+            dto.setWinrate(winrate);
+
+            dto.setAvgKd(kdCount > 0 ? round(totalKd / kdCount, 2) : 0);
+            dto.setAvgKr(krCount > 0 ? round(totalKr / krCount, 2) : 0);
+            dto.setAvgAdr(adrCount > 0 ? round(totalAdr / adrCount, 2) : 0);
+            dto.setAvgHsPercent(hsCount > 0 ? round(totalHs / hsCount, 2) : 0);
+
+
+            result.add(dto);
+        }
+
+        return result;
+    }
+
 }
