@@ -112,7 +112,7 @@ export default function PlayerCard({ segmentKey, ...player }: Props) {
             </span>
           ))}
         </div>
-        <div className="text-xs text-gray-400 whitespace-nowrap mr-26">
+        <div className="text-xs text-gray-400 whitespace-nowrap mr-20">
           Last played: {dayjs(player.lastActive).fromNow()}
         </div>
       </div>

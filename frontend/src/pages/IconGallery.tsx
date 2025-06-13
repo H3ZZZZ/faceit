@@ -49,7 +49,7 @@ const ICON_RULES: { icon: string; label: string; rule: string }[] = [
 export default function IconGallery() {
   return (
     <main className="min-h-screen bg-[#121212] p-10 text-white">
-      <h1 className="text-2xl font-bold mb-6 text-center">Teamspeak icon rules</h1>
+      <h1 className="text-2xl font-bold mb-6 text-center">GOGO Teamspeak icon rules</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {ICON_RULES.map(({ icon, label, rule }) => (
           <div
