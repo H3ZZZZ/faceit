@@ -131,4 +131,6 @@ public class FaceitLifetimeStatsServiceImpl implements FaceitLifetimeStatsServic
         dto.setLast5Results(stats.last5Results());
         return dto;
     }
+
+
 }

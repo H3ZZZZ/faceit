@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FaceitPlayerInfo {
 
-
+    private String nickname;
     private String avatar;
     private String country;
 
@@ -31,6 +31,12 @@ public class FaceitPlayerInfo {
     }
     public String getGamePlayerId() {
         return games != null && games.cs2 != null ? games.cs2.gamePlayerId : null;
+    }
+    public String getNickname() {
+        return nickname;
+    }
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
