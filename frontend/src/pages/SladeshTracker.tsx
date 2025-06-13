@@ -1,19 +1,17 @@
-import { useEffect, useState } from "react";
+// src/pages/SladeshTracker.tsx
 
-type SladeshSimple = {
-  nickname: string;
-  elo: number;
-  level: number;
-};
+import { useEffect, useState } from "react";
+import type { SladeshSimple } from "../types/SladeshSimple";
+import { fetchSladeshSimple } from "../api/api";
 
 export default function SladeshTracker() {
   const [data, setData] = useState<SladeshSimple | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/stats/sladesh/simple")
-      .then((res) => res.json())
+    fetchSladeshSimple()
       .then(setData)
+      .catch(() => setData(null))
       .finally(() => setLoading(false));
   }, []);
 

@@ -1,5 +1,6 @@
 import type { PlayerStats } from "../types/PlayerStats";
 import type { PlayerStatsFull } from "../types/PlayerStatsFull";
+import type { SladeshSimple } from "../types/SladeshSimple";
 
 const API_BASE = `${import.meta.env.VITE_API_BASE_URL}`;
 
@@ -40,5 +41,11 @@ export async function fetchPlayerByNickname(
 ): Promise<PlayerStatsFull> {
   const res = await fetch(`${API_BASE}/lifetime-stats/by-nickname/${nickname}`);
   if (!res.ok) throw new Error("Player not found");
+  return await res.json();
+}
+
+export async function fetchSladeshSimple(): Promise<SladeshSimple> {
+  const res = await fetch(`${API_BASE}/stats/sladesh/simple`);
+  if (!res.ok) throw new Error("Failed to fetch Sladesh simple data");
   return await res.json();
 }
