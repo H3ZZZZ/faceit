@@ -26,8 +26,8 @@ export default function SladeshTracker() {
   const isLevel10 = data.level === 10;
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-[#111827] text-white">
-      <h1 className="text-2xl font-semibold mb-4">Is Sladesh level 10?</h1>
+    <main className="min-h-screen flex flex-col items-center justify-center text-white">
+      <h1 className="text-2xl font-semibold mb-4">Is sladesh level 10?</h1>
       <div
         className={`text-3xl font-bold ${
           isLevel10 ? "text-green-400" : "text-red-500"

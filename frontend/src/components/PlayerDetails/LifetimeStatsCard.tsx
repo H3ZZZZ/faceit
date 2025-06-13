@@ -8,7 +8,7 @@ type Props = {
 
 const calculateCurrentWinStreak = (results: string[]) => {
   let streak = 0;
-  for (let i = results.length - 1; i >= 0; i--) {
+  for (let i = 0; i < results.length; i++) {
     if (results[i] === "W") streak++;
     else break;
   }
@@ -136,9 +136,9 @@ export default function LifetimeStatsCard({ data }: Props) {
         </div>
       </div>
 
-      {/* Last 5 Results */}
+      {/* Last 5 Results (newest on right) */}
       <div className="mt-2 flex gap-1">
-        {data.last5Results.map((r, i) => (
+        {[...data.last5Results].reverse().map((r, i) => (
           <span
             key={i}
             className={`px-2 py-0.5 text-xs font-bold rounded ${
