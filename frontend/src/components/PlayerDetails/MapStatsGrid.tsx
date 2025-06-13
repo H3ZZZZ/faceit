@@ -1,5 +1,6 @@
 import type { PlayerStatsFull, MapStats } from "../../types/PlayerStatsFull";
 import { getPlayerIcons } from "../../utils/icons";
+import { getIconRule } from "../../utils/icons";
 
 type Props = {
   data: PlayerStatsFull;
@@ -62,17 +63,26 @@ export default function MapStatsGrid({ data }: Props) {
               className="rounded w-full h-28 object-cover mb-2"
             />
 
-            {/* Icons row */}
-            <div className="flex justify-end gap-1 mb-1">
-              {icons.map((icon, i) => (
-                <img
-                  key={i}
-                  src={`/icons/${icon}.png`}
-                  alt={icon}
-                  title={icon}
-                  className="w-5 h-5"
-                />
-              ))}
+            {/* Icons row with descriptive tooltip */}
+            <div className="flex justify-end gap-2 mb-2">
+              {icons.map((icon, i) => {
+                const { label, rule } = getIconRule(icon);
+                return (
+                  <div key={i} className="relative group">
+                    <img
+                      src={`/icons/${icon}.png`}
+                      alt={label}
+                      className="w-5 h-5"
+                    />
+                    <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-black text-white text-[11px] rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition pointer-events-none z-10 w-max max-w-xs text-center whitespace-pre-line">
+                      <strong className="block mb-0.5 text-orange-400">
+                        {label}
+                      </strong>
+                      {rule}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Top row: Map name, Elo, Matches */}
