@@ -1,5 +1,6 @@
 import type { PlayerStats, StatSegment } from "../types/PlayerStats";
 import { getPlayerIcons } from "../utils/icons";
+import { Link } from "react-router-dom";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 dayjs.extend(relativeTime);
@@ -43,9 +44,12 @@ export default function PlayerCard({ segmentKey, ...player }: Props) {
           />
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="font-semibold text-lg text-orange-400">
+              <Link
+                to={`/player/${player.nickname}`}
+                className="font-semibold text-lg text-orange-400 hover:underline"
+              >
                 {player.nickname}
-              </h2>
+              </Link>
               <img
                 src={`https://flagcdn.com/24x18/${player.country.toLowerCase()}.png`}
                 alt={player.country}
