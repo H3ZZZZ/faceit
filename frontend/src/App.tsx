@@ -5,6 +5,7 @@ import GogoTracker from "./pages/GogoTracker";
 import IconGallery from "./pages/IconGallery";
 import PlayerDetails from "./pages/PlayerDetails";
 import SearchPage from "./pages/SearchPage";
+import SladeshTracker from "./pages/SladeshTracker";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/GogoTracker" element={<GogoTracker />} />
           <Route path="/icons" element={<IconGallery />} />
           <Route path="/player/:nickname" element={<PlayerDetails />} />
+          <Route path="/sladesh-tracker" element={<SladeshTracker />} />
         </Routes>
       </main>
     </div>

@@ -1,5 +1,6 @@
 package com.faceit.backend.service;
 
+import com.faceit.backend.dto.SladeshSimpleDTO;
 import com.faceit.backend.dto.SladeshTrackerDTO;
 import com.faceit.backend.model.FaceitMatchStatsResponse.MatchStats;
 import com.faceit.backend.model.FaceitPlayerInfo;
@@ -143,4 +144,18 @@ public class SladeshTrackerService {
             return null;
         }
     }
+    public SladeshSimpleDTO getSladeshSimpleInfo() {
+        FaceitPlayerInfo info = fetchPlayerInfoByNickname("sladesh");
+
+        if (info == null) {
+            throw new RuntimeException("Could not fetch Sladesh info.");
+        }
+
+        return new SladeshSimpleDTO(
+                info.getNickname(),
+                info.getFaceitElo(),
+                info.getSkillLevel()
+        );
+    }
+
 }

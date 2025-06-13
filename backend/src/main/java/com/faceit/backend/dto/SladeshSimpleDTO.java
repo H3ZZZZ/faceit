@@ -1,4 +1,8 @@
 package com.faceit.backend.dto;
 
-public class SladeshSimpleDTO {
-}
+public record SladeshSimpleDTO(
+        String nickname,
+        int elo,
+        int level
+) {}
+

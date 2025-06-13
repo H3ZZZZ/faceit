@@ -2,6 +2,7 @@ package com.faceit.backend.controller;
 
 import com.faceit.backend.dto.PlayerStatsDTO;
 import com.faceit.backend.dto.SladeshTrackerDTO;
+import com.faceit.backend.dto.SladeshSimpleDTO;
 import com.faceit.backend.service.FaceitStatsService;
 import com.faceit.backend.service.SladeshTrackerService;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,12 @@ public class FaceitStatsController {
     public ResponseEntity<SladeshTrackerDTO> getSladeshTracker() {
         return ResponseEntity.ok(sladeshTrackerService.getSladeshTrackerData());
     }
+
+    @GetMapping("/sladesh/simple")
+    public ResponseEntity<SladeshSimpleDTO> getSladeshSimple() {
+        return ResponseEntity.ok(sladeshTrackerService.getSladeshSimpleInfo());
+    }
+
 
 
     // Multiple players: /api/stats?ids=ID1,ID2,...
