@@ -1,24 +1,26 @@
 import { Routes, Route } from "react-router-dom";
-import GogoTracker from "./pages/GogoTracker";
+import Sidebar from "./components/Sidebar";
 import Home from "./pages/Home";
-import Navbar from "./components/Navbar";
+import GogoTracker from "./pages/GogoTracker";
 import IconGallery from "./pages/IconGallery";
-import SearchPage from "./pages/SearchPage";
 import PlayerDetails from "./pages/PlayerDetails";
+import SearchPage from "./pages/SearchPage";
 
-export default function App() {
+function App() {
   return (
-    <main>
-      <Navbar />
-      <div className="px-6 pb-6">
+    <div className="flex">
+      <Sidebar />
+      <main className="ml-52 w-full bg-[#181818] min-h-screen px-6 py-6">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/search" element={<SearchPage />} />
           <Route path="/GogoTracker" element={<GogoTracker />} />
           <Route path="/icons" element={<IconGallery />} />
-          <Route path="/search" element={<SearchPage />} />
           <Route path="/player/:nickname" element={<PlayerDetails />} />
         </Routes>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }
+
+export default App;

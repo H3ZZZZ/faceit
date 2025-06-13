@@ -8,7 +8,7 @@ export function getPlayerIcons(stats: {
   const icons: string[] = [];
 
   if (stats.averageKr <= 0.5) icons.push("trash");
-  if (stats.averageKr >= 0.9) icons.push("skull");
+  if (stats.averageKr < 1 && stats.averageKr >= 0.9) icons.push("skull");
   if (stats.averageKr >= 1.0) icons.push("donk");
   if (stats.averageKd >= 1.4) icons.push("star");
   if (stats.winstreak >= 5) icons.push("fire");
