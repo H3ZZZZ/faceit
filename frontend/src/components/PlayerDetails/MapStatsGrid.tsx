@@ -59,8 +59,21 @@ export default function MapStatsGrid({ data }: Props) {
               onError={(e) =>
                 ((e.target as HTMLImageElement).style.display = "none")
               }
-              className="rounded mb-3 w-full h-28 object-cover"
+              className="rounded w-full h-28 object-cover mb-2"
             />
+
+            {/* Icons row */}
+            <div className="flex justify-end gap-1 mb-1">
+              {icons.map((icon, i) => (
+                <img
+                  key={i}
+                  src={`/icons/${icon}.png`}
+                  alt={icon}
+                  title={icon}
+                  className="w-5 h-5"
+                />
+              ))}
+            </div>
 
             {/* Top row: Map name, Elo, Matches */}
             <div className="flex justify-between items-center mb-2">
@@ -85,19 +98,6 @@ export default function MapStatsGrid({ data }: Props) {
               <span className="text-sm text-gray-400">
                 {map.matches} matches
               </span>
-            </div>
-
-            {/* Icons in top-right */}
-            <div className="absolute right-4 top-4 flex gap-1">
-              {icons.map((icon, i) => (
-                <img
-                  key={i}
-                  src={`/icons/${icon}.png`}
-                  alt={icon}
-                  title={icon}
-                  className="w-5 h-5"
-                />
-              ))}
             </div>
 
             {/* Stats */}
