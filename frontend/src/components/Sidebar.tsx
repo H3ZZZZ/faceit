@@ -1,5 +1,4 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
 import {
   FaHome,
   FaSearch,
@@ -10,8 +9,6 @@ import {
 
 export default function Sidebar() {
   const { pathname } = useLocation();
-  const navigate = useNavigate();
-  const [nickname, setNickname] = useState("");
 
   const navLink = (to: string, label: string, Icon: React.ElementType) => (
     <Link

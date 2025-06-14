@@ -128,6 +128,8 @@ public class FaceitLifetimeStatsServiceImpl implements FaceitLifetimeStatsServic
         dto.setKavg(stats.kavg());
         dto.setAavg(stats.aavg());
         dto.setDavg(stats.davg());
+        dto.setHighestElo(stats.highestElo());
+        dto.setLowestElo(stats.lowestElo());
         dto.setLast5Results(stats.last5Results());
         return dto;
     }

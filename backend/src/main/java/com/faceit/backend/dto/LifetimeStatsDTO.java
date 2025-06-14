@@ -27,6 +27,9 @@ public class LifetimeStatsDTO {
     private double lowestKd;
     private String lowestKdMatchId;
     private int totalEloGain;
+    private int highestElo;
+    private int lowestElo;
+
 
     // 🆕 New fields:
     private int kavg;
@@ -154,6 +157,10 @@ public class LifetimeStatsDTO {
 
     public List<String> getLast5Results() { return last5Results; }
     public void setLast5Results(List<String> last5Results) { this.last5Results = last5Results; }
+    public int getHighestElo() { return highestElo; }
+    public void setHighestElo(int highestElo) { this.highestElo = highestElo; }
+    public int getLowestElo() { return lowestElo; }
+    public void setLowestElo(int lowestElo) { this.lowestElo = lowestElo; }
 
 
 
