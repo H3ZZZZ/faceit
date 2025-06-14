@@ -7,9 +7,13 @@ import com.faceit.backend.service.util.FaceitLifetimeAggregator;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class FaceitLifetimeStatsServiceImpl implements FaceitLifetimeStatsService {
@@ -55,38 +59,106 @@ public class FaceitLifetimeStatsServiceImpl implements FaceitLifetimeStatsServic
         return dto;
     }
 
+    // DEN GAMLE METODE DER VAR LANGSOMMERE
+//    @Override
+//    public List<MatchStats> fetchAllCs2Matches(String playerId) {
+//        List<MatchStats> allMatches = new ArrayList<>();
+//        String baseUrl = "/api/stats/v1/stats/time/users/" + playerId + "/games/cs2?size=100&game_mode=5v5";
+//        Long to = null;
+//        boolean more = true;
+//
+//        while (more) {
+//            String url = baseUrl + (to != null ? "&to=" + to : "");
+//
+//            List<MatchStats> page = webClient.get()
+//                    .uri(url)
+//                    .retrieve()
+//                    .bodyToFlux(MatchStats.class)
+//                    .collectList()
+//                    .block();
+//
+//            if (page == null || page.isEmpty()) {
+//                more = false;
+//            } else {
+//                allMatches.addAll(page);
+//                if (page.size() < 100) {
+//                    more = false;
+//                } else {
+//                    long lastMatchTimestamp = page.get(page.size() - 1).getDate();
+//                    to = lastMatchTimestamp - 1;
+//                }
+//            }
+//        }
+//
+//        return allMatches;
+//    }
+
     @Override
     public List<MatchStats> fetchAllCs2Matches(String playerId) {
-        List<MatchStats> allMatches = new ArrayList<>();
         String baseUrl = "/api/stats/v1/stats/time/users/" + playerId + "/games/cs2?size=100&game_mode=5v5";
-        Long to = null;
-        boolean more = true;
 
-        while (more) {
-            String url = baseUrl + (to != null ? "&to=" + to : "");
+        // Step 1: Fetch the first (latest) page
+        Mono<List<MatchStats>> firstPageMono = webClient.get()
+                .uri(baseUrl)
+                .retrieve()
+                .bodyToFlux(MatchStats.class)
+                .collectList();
 
-            List<MatchStats> page = webClient.get()
+        List<MatchStats> firstPage = firstPageMono.block();
+        if (firstPage == null || firstPage.isEmpty()) return new ArrayList<>();
+
+        // Step 2: Collect all 'to' timestamps by walking backward
+        List<Long> timestamps = new ArrayList<>();
+        long lastTo = firstPage.get(firstPage.size() - 1).getDate() - 1;
+
+        while (true) {
+            timestamps.add(lastTo);
+            String url = baseUrl + "&to=" + lastTo;
+
+            List<MatchStats> testPage = webClient.get()
                     .uri(url)
                     .retrieve()
                     .bodyToFlux(MatchStats.class)
                     .collectList()
                     .block();
 
-            if (page == null || page.isEmpty()) {
-                more = false;
-            } else {
-                allMatches.addAll(page);
-                if (page.size() < 100) {
-                    more = false;
-                } else {
-                    long lastMatchTimestamp = page.get(page.size() - 1).getDate();
-                    to = lastMatchTimestamp - 1;
-                }
+            if (testPage == null || testPage.isEmpty() || testPage.size() < 100) {
+                break;
             }
+
+            lastTo = testPage.get(testPage.size() - 1).getDate() - 1;
         }
 
-        return allMatches;
+        // Step 3: Create parallel Monos for all pages
+        List<Mono<List<MatchStats>>> parallelCalls = timestamps.stream()
+                .map(to -> {
+                    String url = baseUrl + "&to=" + to;
+                    return webClient.get()
+                            .uri(url)
+                            .retrieve()
+                            .bodyToFlux(MatchStats.class)
+                            .collectList();
+                })
+                .collect(Collectors.toList());
+
+        // Include first page in parallel merge
+        parallelCalls.add(0, firstPageMono);
+
+        // Step 4: Run all requests in parallel and flatten result
+        List<MatchStats> allMatches = Flux.merge(parallelCalls)
+                .flatMap(Flux::fromIterable)
+                .collectList()
+                .block();
+
+        if (allMatches != null) {
+            allMatches.sort(Comparator.comparing(MatchStats::getDate).reversed());
+        }
+
+
+        return allMatches != null ? allMatches : new ArrayList<>();
     }
+
+
 
     @Override
     public LifetimeStatsDTO getLifetimeStats(String playerId) {
