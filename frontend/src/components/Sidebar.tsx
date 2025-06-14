@@ -1,7 +1,12 @@
-// src/components/Sidebar.tsx
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { FaHome, FaSearch, FaChartLine, FaStar } from "react-icons/fa";
+import {
+  FaHome,
+  FaSearch,
+  FaChartLine,
+  FaStar,
+  FaUserSecret,
+} from "react-icons/fa";
 
 export default function Sidebar() {
   const { pathname } = useLocation();
@@ -37,6 +42,7 @@ export default function Sidebar() {
         {navLink("/search", "Search", FaSearch)}
         {navLink("/GogoTracker", "GOGO Tracker", FaChartLine)}
         {navLink("/icons", "Icons", FaStar)}
+        {navLink("/sladesh-tracker", "Sladesh Tracker", FaUserSecret)}
       </div>
     </aside>
   );

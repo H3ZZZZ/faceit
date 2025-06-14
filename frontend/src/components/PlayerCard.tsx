@@ -1,5 +1,5 @@
 import type { PlayerStats, StatSegment } from "../types/PlayerStats";
-import { getPlayerIcons } from "../utils/icons";
+import { getPlayerIcons, getIconRule } from "../utils/icons";
 import { Link } from "react-router-dom";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -23,14 +23,18 @@ export default function PlayerCard({ segmentKey, ...player }: Props) {
   return (
     <div className="bg-[#1e1e1e] text-white p-4 rounded-xl shadow-md transition hover:shadow-lg hover:scale-[1.015] flex flex-col gap-3 relative">
       {/* Icons (Top Right) */}
-      <div className="absolute top-3 right-2 flex gap-1 text-xl items-end">
+      <div className="absolute top-3 right-2 flex gap-1 items-end">
         {icons.map((icon, i) => (
-          <img
-            key={i}
-            src={`/icons/${icon}.png`}
-            alt={icon}
-            className="w-8 h-8 object-contain"
-          />
+          <div key={i} className="relative group">
+            <img
+              src={`/icons/${icon}.png`}
+              alt={icon}
+              className="w-8 h-8 object-contain"
+            />
+            <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-black text-white text-xs rounded px-2 py-0.5 opacity-0 group-hover:opacity-100 transition pointer-events-none z-10 whitespace-nowrap max-w-[200px] text-center">
+              {getIconRule(icon).rule}
+            </div>
+          </div>
         ))}
       </div>
 
@@ -112,7 +116,7 @@ export default function PlayerCard({ segmentKey, ...player }: Props) {
             </span>
           ))}
         </div>
-        <div className="text-xs text-gray-400 whitespace-nowrap mr-20">
+        <div className="text-xs text-gray-400 whitespace-nowrap mr-10">
           Last played: {dayjs(player.lastActive).fromNow()}
         </div>
       </div>
