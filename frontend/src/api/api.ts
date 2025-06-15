@@ -49,3 +49,17 @@ export async function fetchSladeshSimple(): Promise<SladeshSimple> {
   if (!res.ok) throw new Error("Failed to fetch Sladesh simple data");
   return await res.json();
 }
+
+export async function fetchSharedStats(nicknames: string[]) {
+  const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/squad-stats`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(nicknames),
+  });
+
+  if (!res.ok) throw new Error("Failed to fetch shared stats");
+
+  return res.json();
+}

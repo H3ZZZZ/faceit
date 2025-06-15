@@ -5,6 +5,7 @@ import {
   FaChartLine,
   FaStar,
   FaUserSecret,
+  FaUsers
 } from "react-icons/fa";
 
 export default function Sidebar() {
@@ -40,6 +41,7 @@ export default function Sidebar() {
         {navLink("/GogoTracker", "GOGO Tracker", FaChartLine)}
         {navLink("/icons", "Icons", FaStar)}
         {navLink("/sladesh-tracker", "Sladesh Tracker", FaUserSecret)}
+        {navLink("/shared-stats", "Shared Stats", FaUsers)}
       </div>
     </aside>
   );
