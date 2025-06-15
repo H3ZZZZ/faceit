@@ -22,9 +22,9 @@ const PLAYER_IDS = [
   // "efb4bfe3-5f08-4ac0-890b-0d0d8e5de38f", // Skitzoo
   "59adcce7-fd9f-4d91-bb3d-08a3a71aeadb", // Raller
   // "259ef4a5-e636-4e17-b6a4-ff2e1a728426", // Kasper
-  "91e5164d-866b-4797-95cc-5d6799b4dd5f", // Skejs
-  "e377361b-c4fc-4439-8435-cee579d5fc96", // BacH
-  "17d8ecb7-01b6-4cb9-b1db-7555c878ce6d", // Carlsson
+  // "91e5164d-866b-4797-95cc-5d6799b4dd5f", // Skejs
+  // "e377361b-c4fc-4439-8435-cee579d5fc96", // BacH
+  // "17d8ecb7-01b6-4cb9-b1db-7555c878ce6d", // Carlsson
 ];
 
 export async function fetchAllPlayerStats(): Promise<PlayerStats[]> {
@@ -48,4 +48,18 @@ export async function fetchSladeshSimple(): Promise<SladeshSimple> {
   const res = await fetch(`${API_BASE}/stats/sladesh/simple`);
   if (!res.ok) throw new Error("Failed to fetch Sladesh simple data");
   return await res.json();
+}
+
+export async function fetchSharedStats(nicknames: string[]) {
+  const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/squad-stats`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(nicknames),
+  });
+
+  if (!res.ok) throw new Error("Failed to fetch shared stats");
+
+  return res.json();
 }

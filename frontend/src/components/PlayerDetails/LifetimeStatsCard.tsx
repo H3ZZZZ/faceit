@@ -26,6 +26,21 @@ export default function LifetimeStatsCard({ data }: Props) {
     winstreak: currentStreak,
   });
 
+  const Stat = ({
+    label,
+    value,
+    color = "text-white",
+  }: {
+    label: string;
+    value: string | number;
+    color?: string;
+  }) => (
+    <div>
+      <span className="text-gray-400">{label}:</span>{" "}
+      <span className={`font-semibold ${color}`}>{value}</span>
+    </div>
+  );
+
   return (
     <div className="bg-[#1e1e1e] text-white p-5 rounded-xl shadow-md hover:shadow-lg transition flex flex-col gap-4">
       {/* Header */}
@@ -82,6 +97,7 @@ export default function LifetimeStatsCard({ data }: Props) {
       <div className="border-t border-gray-700" />
 
       {/* Stats */}
+      {/* Stats Grid - Keep same as original */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-y-1 text-sm">
         <div>
           Matches:{" "}
@@ -92,7 +108,7 @@ export default function LifetimeStatsCard({ data }: Props) {
           <span className="font-semibold text-white">{data.winrate}%</span>
         </div>
         <div>
-          CS2 Elo Δ:{" "}
+          CS2 Elo Δ:
           <span
             className={`font-semibold ${
               data.totalEloGain >= 0 ? "text-green-500" : "text-red-500"
@@ -133,6 +149,20 @@ export default function LifetimeStatsCard({ data }: Props) {
         <div>
           Current Streak:{" "}
           <span className="font-semibold text-white">{currentStreak}</span>
+        </div>
+      </div>
+
+      {/* Option 2: ELO Range Highlight Block */}
+      <div className="bg-zinc-800 mt-4 rounded-xl px-4 py-3 flex justify-between items-center text-sm text-white border border-zinc-700">
+        <div className="flex items-center gap-2">
+          <span className="text-gray-400">🔼 Highest ELO:</span>
+          <span className="text-green-400 font-semibold">
+            {data.highestElo}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-gray-400">🔽 Lowest ELO:</span>
+          <span className="text-red-400 font-semibold">{data.lowestElo}</span>
         </div>
       </div>
 

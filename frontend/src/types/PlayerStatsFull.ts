@@ -45,6 +45,8 @@ export type PlayerStatsFull = {
   kavg: number;
   aavg: number;
   davg: number;
+  highestElo: number;
+  lowestElo: number;
   last5Results: string[];
   avatar: string;
   country: string;

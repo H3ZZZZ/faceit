@@ -6,6 +6,7 @@ import IconGallery from "./pages/IconGallery";
 import PlayerDetails from "./pages/PlayerDetails";
 import SearchPage from "./pages/SearchPage";
 import SladeshTracker from "./pages/SladeshTracker";
+import SharedStatsPage from "./pages/SharedStatsPage";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/icons" element={<IconGallery />} />
           <Route path="/player/:nickname" element={<PlayerDetails />} />
           <Route path="/sladesh-tracker" element={<SladeshTracker />} />
+          <Route path="/shared-stats" element={<SharedStatsPage />} />
         </Routes>
       </main>
     </div>

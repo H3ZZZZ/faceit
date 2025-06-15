@@ -1,17 +1,15 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
 import {
   FaHome,
   FaSearch,
   FaChartLine,
   FaStar,
   FaUserSecret,
+  FaUsers
 } from "react-icons/fa";
 
 export default function Sidebar() {
   const { pathname } = useLocation();
-  const navigate = useNavigate();
-  const [nickname, setNickname] = useState("");
 
   const navLink = (to: string, label: string, Icon: React.ElementType) => (
     <Link
@@ -39,10 +37,11 @@ export default function Sidebar() {
       {/* Navigation */}
       <div className="flex flex-col items-start w-full px-4 mt-4 space-y-1">
         {navLink("/", "Home", FaHome)}
-        {navLink("/search", "Search", FaSearch)}
+        {navLink("/shared-stats", "Played Together", FaUsers)}
         {navLink("/GogoTracker", "GOGO Tracker", FaChartLine)}
-        {navLink("/icons", "Icons", FaStar)}
         {navLink("/sladesh-tracker", "Sladesh Tracker", FaUserSecret)}
+        {navLink("/search", "Search", FaSearch)}
+        {navLink("/icons", "Icons", FaStar)}
       </div>
     </aside>
   );

@@ -43,6 +43,8 @@ public class FaceitLifetimeAggregator {
             int kavg,
             int aavg,
             int davg,
+            int highestElo,
+            int lowestElo,
             List<String> last5Results
     ) {}
 
@@ -56,7 +58,7 @@ public class FaceitLifetimeAggregator {
                     0, null, 0, null,
                     0, 0, 0, null,
                     0, null, 0, null,
-                    0, null, 0, 0, 0,
+                    0, null, 0, 0, 0,0,0,
                     new ArrayList<>()
             );
 
@@ -100,6 +102,9 @@ public class FaceitLifetimeAggregator {
 
         int currentWinStreak = 0, currentLossStreak = 0;
         int maxWinStreak = 0, maxLossStreak = 0;
+
+        int highestElo = Integer.MIN_VALUE;
+        int lowestElo = Integer.MAX_VALUE;
 
         double highestKr = Double.MIN_VALUE, lowestKr = Double.MAX_VALUE;
         String highestKrMatchId = "", lowestKrMatchId = "";
@@ -163,6 +168,12 @@ public class FaceitLifetimeAggregator {
                     }
                 }
 
+                Integer elo = parseElo(m.getElo());
+                if (elo != null) {
+                    if (elo > highestElo) highestElo = elo;
+                    if (elo < lowestElo) lowestElo = elo;
+                }
+
                 double adr = parseDoubleSafe(s.getAdr());
                 if (adr >= 0) {
                     totalAdr += adr;
@@ -174,6 +185,8 @@ public class FaceitLifetimeAggregator {
                     totalHs += hs;
                     validHsCount++;
                 }
+
+
 
                 boolean win = "1".equals(s.getResult());
                 if (win) {
@@ -222,7 +235,10 @@ public class FaceitLifetimeAggregator {
                 totalKills / totalMatches,
                 totalAssists / totalMatches,
                 totalDeaths / totalMatches,
+                highestElo,
+                lowestElo,
                 last5Results
+
         );
     }
 

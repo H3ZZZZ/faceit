@@ -31,9 +31,9 @@ public class PlayerStatsDTO {
         String nickname = matches.isEmpty() ? "Unknown" : matches.get(0).getNickname();
         dto.nickname = nickname;
 
-        dto.last10 = computeStats(matches.subList(0, Math.min(10, matches.size())), eloHistory, last5Results);
-        dto.last30 = computeStats(matches.subList(0, Math.min(30, matches.size())), eloHistory, last5Results);
-        dto.last50 = computeStats(matches.subList(0, Math.min(50, matches.size())), eloHistory, last5Results);
+        dto.last10 = computeStats(matches.subList(0, Math.min(10, matches.size())), eloHistory.subList(0, Math.min(10, eloHistory.size())), last5Results);
+        dto.last30 = computeStats(matches.subList(0, Math.min(30, matches.size())), eloHistory.subList(0, Math.min(30, eloHistory.size())), last5Results);
+        dto.last50 = computeStats(matches.subList(0, Math.min(50, matches.size())), eloHistory.subList(0, Math.min(50, eloHistory.size())), last5Results);
         dto.last100 = computeStats(matches, eloHistory, last5Results);
 
         return dto;
@@ -80,11 +80,14 @@ public class PlayerStatsDTO {
         // 🔁 Use shared last5Results (from full 100-match list)
         stats.setLast5Results(new ArrayList<>(last5Results));
 
-        if (eloHistory != null && eloHistory.size() >= 2) {
-            stats.setEloChange(eloHistory.get(0) - eloHistory.get(Math.min(eloHistory.size() - 1, matchCount - 1)));
+        Integer startElo = findFirstValidElo(matches);
+        Integer endElo = findLastValidElo(matches);
+        if (startElo != null && endElo != null) {
+            stats.setEloChange(startElo - endElo);
         } else {
             stats.setEloChange(0);
         }
+
 
         return stats;
     }
@@ -94,6 +97,25 @@ public class PlayerStatsDTO {
         double scale = Math.pow(10, places);
         return Math.round(value * scale) / scale;
     }
+
+    private static Integer findFirstValidElo(List<MatchStats> matches) {
+        for (MatchStats match : matches) {
+            try {
+                return Integer.parseInt(match.getElo());
+            } catch (Exception ignored) {}
+        }
+        return null;
+    }
+
+    private static Integer findLastValidElo(List<MatchStats> matches) {
+        for (int i = matches.size() - 1; i >= 0; i--) {
+            try {
+                return Integer.parseInt(matches.get(i).getElo());
+            } catch (Exception ignored) {}
+        }
+        return null;
+    }
+
 
     public String getPlayerId() { return playerId; }
     public String getNickname() { return nickname; }
