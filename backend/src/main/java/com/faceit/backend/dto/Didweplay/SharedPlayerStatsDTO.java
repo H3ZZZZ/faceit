@@ -5,6 +5,7 @@ import java.util.List;
 public class SharedPlayerStatsDTO {
     private String nickname;
     private String avatar;
+    private String country;
     private int skillLevel;
     private int faceitElo;
 
@@ -17,10 +18,46 @@ public class SharedPlayerStatsDTO {
     private double avgAdr;
     private double avgHsPercent;
     private int totalEloGain;
+    private int longestWinStreak;
+    private int longestLossStreak;
+    private List<String> last5Results;
+
 
     private List<SharedPlayerMapStatsDTO> mapStats;
 
     // Getters and setters
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+    public int getLongestWinStreak() {
+        return longestWinStreak;
+    }
+
+    public void setLongestWinStreak(int longestWinStreak) {
+        this.longestWinStreak = longestWinStreak;
+    }
+
+    public int getLongestLossStreak() {
+        return longestLossStreak;
+    }
+
+    public void setLongestLossStreak(int longestLossStreak) {
+        this.longestLossStreak = longestLossStreak;
+    }
+
+    public List<String> getLast5Results() {
+        return last5Results;
+    }
+
+    public void setLast5Results(List<String> last5Results) {
+        this.last5Results = last5Results;
+    }
+
+
     public String getNickname() { return nickname; }
     public void setNickname(String nickname) { this.nickname = nickname; }
 

@@ -1,5 +1,7 @@
 package com.faceit.backend.dto.Didweplay;
 
+import java.util.List;
+
 public class SharedPlayerMapStatsDTO {
     private String map;
     private int matches;
@@ -11,8 +13,32 @@ public class SharedPlayerMapStatsDTO {
     private double avgAdr;
     private double avgHsPercent;
     private int totalEloGain;
+    private int longestWinStreak;
+    private int longestLossStreak;
+    private List<String> last5Results;
+
 
     // Getters and setters
+
+    public int getLongestWinStreak() {
+        return longestWinStreak;
+    }
+    public void setLongestWinStreak(int longestWinStreak) {
+        this.longestWinStreak = longestWinStreak;
+    }
+    public int getLongestLossStreak() {
+        return longestLossStreak;
+    }
+    public void setLongestLossStreak(int longestLossStreak) {
+        this.longestLossStreak = longestLossStreak;
+    }
+    public List<String> getLast5Results() {
+        return last5Results;
+    }
+    public void setLast5Results(List<String> last5Results) {
+        this.last5Results = last5Results;
+    }
+
     public String getMap() {
         return map;
     }

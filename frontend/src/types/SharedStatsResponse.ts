@@ -1,33 +1,35 @@
-export type SharedMatch = {
-  matchId: string;
-  date: number;
+export type SharedMapStatsDTO = {
   map: string;
-  result: string;
-  eloGain: number;
-  kd: number;
-  kr: number;
-  adr: number;
-};
-
-export type SharedStatsPlayer = {
-  nickname: string;
   matches: number;
-  totalEloGain: number;
+  wins: number;
+  losses: number;
   winrate: number;
   avgKd: number;
   avgKr: number;
   avgAdr: number;
   avgHsPercent: number;
+  totalEloGain: number;
+  longestWinStreak: number;
+  longestLossStreak: number;
+  last5Results: string[]; // e.g. ["W", "L", "W", "W", "L"]
 };
-
-export type SharedStatsResponse = {
-  matchCount: number;
-  perPlayer: SharedStatsPlayer[];
-  global: {
-    winrate: number;
-    avgKd: number;
-    avgKr: number;
-    avgAdr: number;
-    totalEloGain: number;
-  };
-};
+export interface SharedPlayerStatsDTO {
+  nickname: string;
+  avatar: string;
+  skillLevel: number;
+  faceitElo: number;
+  country: string;
+  totalMatches: number;
+  wins: number;
+  losses: number;
+  winrate: number;
+  avgKd: number;
+  avgKr: number;
+  avgAdr: number;
+  avgHsPercent: number;
+  totalEloGain: number;
+  mapStats: SharedMapStatsDTO[];
+  longestWinStreak: number;
+  longestLossStreak: number;
+  last5Results: string[]; // e.g. ["W", "L", "W", "W", "L"]
+}

@@ -61,6 +61,7 @@ public class SquadStatsService {
             FaceitPlayerInfo profile = profileMap.get(nickname);
             List<MatchStats> sharedMatches = matchesMap.get(nickname).stream()
                     .filter(m -> sharedMatchIds.contains(m.getMatchId()))
+                    .sorted(Comparator.comparing(MatchStats::getDate).reversed()) // ← ADD THIS
                     .toList();
 
             SharedPlayerStatsDTO dto = SharedStatsAggregator.aggregateSharedStats(profile, sharedMatches);
