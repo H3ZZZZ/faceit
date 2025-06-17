@@ -1,7 +1,7 @@
-// src/pages/GogoTracker.tsx
 import { useState } from "react";
 import { usePlayerData } from "../context/PlayerDataContext";
 import PlayerCard from "../components/PlayerCard";
+import LoadError from "../components/LoadError";
 
 export default function GogoTracker() {
   const { data, loading } = usePlayerData();
@@ -28,14 +28,14 @@ export default function GogoTracker() {
         ))}
       </div>
 
-      {/* Stats grid */}
+      {/* Loading / Error / Data display */}
       {loading ? (
-        <div className="text-center text-white">
-          Loading stats... Server is sometimes a little slow
-        </div>
+        <div className="text-white text-center">Loading GOGO stats...</div>
+      ) : !data ? (
+        <LoadError message="Failed to load GOGO stats." />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-          {data!.map((player) => (
+          {data.map((player) => (
             <PlayerCard
               key={player.playerId}
               {...player}

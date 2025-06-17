@@ -16,7 +16,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/search" element={<SearchPage />} />
-          <Route path="/GogoTracker" element={<GogoTracker />} />
+          <Route path="/gogo-tracker" element={<GogoTracker />} />
           <Route path="/icons" element={<IconGallery />} />
           <Route path="/player/:nickname" element={<PlayerDetails />} />
           <Route path="/sladesh-tracker" element={<SladeshTracker />} />

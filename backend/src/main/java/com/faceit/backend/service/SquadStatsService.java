@@ -32,36 +32,47 @@ public class SquadStatsService {
         Map<String, FaceitPlayerInfo> profileMap = new ConcurrentHashMap<>();
         Map<String, List<MatchStats>> matchesMap = new ConcurrentHashMap<>();
 
+        // Fetch profil og alle CS2-kampe for hver spiller
         nicknames.parallelStream().forEach(nickname -> {
             FaceitPlayerInfo profile = fetchPlayerInfoByNickname(nickname);
             if (profile != null) {
                 profileMap.put(nickname, profile);
                 List<MatchStats> matches = fetchAllCs2Matches(profile.getPlayerId());
-                SharedStatsAggregator.calculateEloGain(matches); // 👈 Add this line
+                SharedStatsAggregator.calculateEloGain(matches);
                 matchesMap.put(nickname, matches);
             }
         });
 
-
+        // Hvis vi ikke kunne hente stats for alle
         if (profileMap.size() != nicknames.size()) return List.of();
 
-        Set<String> sharedMatchIds = matchesMap.values().stream()
-                .map(list -> list.stream().map(MatchStats::getMatchId).collect(Collectors.toSet()))
+        // Find fælles {matchId|teamId} par for alle spillere
+        Map<String, Set<String>> playerMatchKeys = new HashMap<>();
+
+        for (String nickname : nicknames) {
+            Set<String> keys = matchesMap.get(nickname).stream()
+                    .map(m -> m.getMatchId() + "|" + m.getTeamId())
+                    .collect(Collectors.toSet());
+            playerMatchKeys.put(nickname, keys);
+        }
+
+        // Find snittet af alle sets = fælles kampe på samme hold
+        Set<String> sharedMatchKeys = playerMatchKeys.values().stream()
                 .reduce((a, b) -> {
                     a.retainAll(b);
                     return a;
                 })
                 .orElse(Set.of());
 
-        if (sharedMatchIds.isEmpty()) return List.of();
+        if (sharedMatchKeys.isEmpty()) return List.of();
 
         List<SharedPlayerStatsDTO> results = new ArrayList<>();
 
         for (String nickname : nicknames) {
             FaceitPlayerInfo profile = profileMap.get(nickname);
             List<MatchStats> sharedMatches = matchesMap.get(nickname).stream()
-                    .filter(m -> sharedMatchIds.contains(m.getMatchId()))
-                    .sorted(Comparator.comparing(MatchStats::getDate).reversed()) // ← ADD THIS
+                    .filter(m -> sharedMatchKeys.contains(m.getMatchId() + "|" + m.getTeamId()))
+                    .sorted(Comparator.comparing(MatchStats::getDate).reversed())
                     .toList();
 
             SharedPlayerStatsDTO dto = SharedStatsAggregator.aggregateSharedStats(profile, sharedMatches);
@@ -70,6 +81,7 @@ public class SquadStatsService {
 
         return results;
     }
+
 
     private FaceitPlayerInfo fetchPlayerInfoByNickname(String nickname) {
         return authenticatedWebClient.get()
