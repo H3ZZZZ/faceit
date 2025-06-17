@@ -38,7 +38,7 @@ export default function Sidebar() {
       <div className="flex flex-col items-start w-full px-4 mt-4 space-y-1">
         {navLink("/", "Home", FaHome)}
         {navLink("/shared-stats", "Played Together", FaUsers)}
-        {navLink("/GogoTracker", "GOGO Tracker", FaChartLine)}
+        {navLink("/gogo-tracker", "GOGO Tracker", FaChartLine)}
         {navLink("/sladesh-tracker", "Sladesh Tracker", FaUserSecret)}
         {navLink("/search", "Search", FaSearch)}
         {navLink("/icons", "Icons", FaStar)}

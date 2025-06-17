@@ -146,10 +146,6 @@ export default function LifetimeStatsCard({ data }: Props) {
             {data.kavg} / {data.aavg} / {data.davg}
           </span>
         </div>
-        <div>
-          Current Streak:{" "}
-          <span className="font-semibold text-white">{currentStreak}</span>
-        </div>
       </div>
 
       {/* Option 2: ELO Range Highlight Block */}

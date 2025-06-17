@@ -13,16 +13,23 @@ const PlayerDataContext = createContext<PlayerDataContextType>({
   loading: true,
 });
 
-export function PlayerDataProvider({ children }: { children: React.ReactNode }) {
+export function PlayerDataProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [data, setData] = useState<PlayerStats[] | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!data) {
-      fetchAllPlayerStats().then((res) => {
-        setData(res);
-        setLoading(false);
-      });
+      fetchAllPlayerStats()
+        .then(setData)
+        .catch((error) => {
+          console.error("Failed to fetch player stats:", error);
+          setData(null);
+        })
+        .finally(() => setLoading(false)); // ✅ make sure this runs even on error
     }
   }, []);
 

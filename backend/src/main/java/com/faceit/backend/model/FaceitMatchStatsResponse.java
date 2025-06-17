@@ -18,6 +18,9 @@ public class FaceitMatchStatsResponse {
         @JsonProperty("i6")
         private String kills;
 
+        @JsonProperty("teamId")
+        private String teamId;
+
         @JsonProperty("created_at")
         private long createdAt;
 
@@ -75,6 +78,10 @@ public class FaceitMatchStatsResponse {
             return matchId;
         }
 
+        public String getTeamId() {
+            return teamId;
+        }
+
         public String getMap() {
             return map;
         }
@@ -90,8 +97,9 @@ public class FaceitMatchStatsResponse {
 
 
 
+
         public MatchInnerStats getStats() {
-            return new MatchInnerStats(kills, assists, deaths, kdRatio, krRatio, adr, headshotsPercent, result, matchId, date, map, elo, nickname, createdAt);
+            return new MatchInnerStats(kills, assists, deaths, kdRatio, krRatio, adr, headshotsPercent, result, matchId, date, map, elo, nickname, createdAt, teamId);
         }
 
         public String getElo() {
@@ -118,9 +126,10 @@ public class FaceitMatchStatsResponse {
         private final String elo;
         private final String nickname;
         private final long createdAt;
+        private final String teamId;
 
 
-        public MatchInnerStats(String kills, String assists, String deaths, String kdRatio, String krRatio, String adr, String headshotsPercent, String result, String matchId, long date, String map, String elo, String nickname, long createdAt) {
+        public MatchInnerStats(String kills, String assists, String deaths, String kdRatio, String krRatio, String adr, String headshotsPercent, String result, String matchId, long date, String map, String elo, String nickname, long createdAt, String teamId) {
             this.kills = kills;
             this.assists = assists;
             this.deaths = deaths;
@@ -135,6 +144,7 @@ public class FaceitMatchStatsResponse {
             this.elo = elo;
             this.nickname = nickname;
             this.createdAt = createdAt;
+            this.teamId = teamId;
         }
 
         public String getKills() {
@@ -185,6 +195,11 @@ public class FaceitMatchStatsResponse {
         public long getCreatedAt() {
             return createdAt;
         }
+        public String getTeamId() {
+            return teamId;
+        }
+
+
 
 
     }
