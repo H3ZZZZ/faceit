@@ -12,7 +12,7 @@ const currentMapPool = [
   "de_mirage",
   "de_nuke",
   "de_dust2",
-  "de_anubis",
+  "de_overpass",
   "de_ancient",
 ];
 
