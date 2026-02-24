@@ -24,6 +24,7 @@ public class FaceitStatsApplication {
 								"https://6846a520490c3f9985f9d3e0--faceitfrontend.netlify.app",
 								"https://frederikhess.dk",
 								"https://www.frederikhess.dk"
+								"https://api.frederikhess.dk" // add this
 						)
 						.allowedMethods("*");
 			}
