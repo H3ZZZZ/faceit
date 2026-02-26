@@ -31,8 +31,8 @@ export default function GogoTracker() {
       {/* Loading / Error / Data display */}
       {loading ? (
         <div className="text-white text-center">Loading GOGO stats...</div>
-      ) : !data ? (
-        <LoadError message="Failed to load GOGO stats." />
+      ) : !data || data.length === 0 ? (
+        <LoadError message="Could not load player stats right now (backend/Faceit issue)." />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
           {data.map((player) => (

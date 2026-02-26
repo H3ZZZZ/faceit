@@ -27,13 +27,54 @@ const PLAYER_IDS = [
   // "17d8ecb7-01b6-4cb9-b1db-7555c878ce6d", // Carlsson
 ];
 
-export async function fetchAllPlayerStats(): Promise<PlayerStats[]> {
-  const responses = await Promise.all(
-    PLAYER_IDS.map((id) =>
-      fetch(`${API_BASE}/stats/${id}`).then((res) => res.json())
-    )
+function isPlayerStats(value: unknown): value is PlayerStats {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.playerId === "string" &&
+    typeof v.nickname === "string" &&
+    !!v.last10 &&
+    !!v.last30 &&
+    !!v.last50 &&
+    !!v.last100
   );
-  return responses;
+}
+
+export async function fetchAllPlayerStats(): Promise<PlayerStats[]> {
+  const results = await Promise.allSettled(
+    PLAYER_IDS.map(async (id) => {
+      const res = await fetch(`${API_BASE}/stats/${id}`);
+      if (!res.ok) {
+        throw new Error(`Stats fetch failed for ${id}: HTTP ${res.status}`);
+      }
+      const data: unknown = await res.json();
+      if (!isPlayerStats(data)) {
+        throw new Error(`Invalid player payload for ${id}`);
+      }
+      return data;
+    })
+  );
+
+  const players: PlayerStats[] = [];
+  const failures: string[] = [];
+
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      players.push(result.value);
+    } else {
+      failures.push(result.reason instanceof Error ? result.reason.message : String(result.reason));
+    }
+  }
+
+  if (failures.length > 0) {
+    console.error("Some player stats requests failed:", failures);
+  }
+
+  if (players.length === 0) {
+    throw new Error("All player stats requests failed");
+  }
+
+  return players;
 }
 
 export async function fetchPlayerByNickname(
@@ -53,13 +94,10 @@ export async function fetchSladeshSimple(): Promise<SladeshSimple> {
 export async function fetchSharedStats(nicknames: string[]) {
   const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/squad-stats`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(nicknames),
   });
 
   if (!res.ok) throw new Error("Failed to fetch shared stats");
-
   return res.json();
 }

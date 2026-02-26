@@ -11,6 +11,9 @@ type Props = PlayerStats & {
 
 export default function PlayerCard({ segmentKey, ...player }: Props) {
   const segment: StatSegment = player[segmentKey];
+  if (!segment) {
+    return null;
+  }
 
   const icons = getPlayerIcons({
     averageKr: segment.averageKr,
