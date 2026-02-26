@@ -85,17 +85,6 @@ export default function PlayerCard({ segmentKey, ...player }: Props) {
           <span className="text-red-400">{segment.losses}</span>
         </div>
         <div>Win Rate: {segment.winRate}%</div>
-        <div>
-          Elo Δ:{" "}
-          <span
-            className={
-              segment.eloChange >= 0 ? "text-green-400" : "text-red-400"
-            }
-          >
-            {segment.eloChange >= 0 ? "+" : ""}
-            {segment.eloChange}
-          </span>
-        </div>
         <div>K/D: {segment.averageKd.toFixed(2)}</div>
         <div>K/R: {segment.averageKr.toFixed(2)}</div>
         <div>ADR: {segment.averageAdr.toFixed(1)}</div>
@@ -103,6 +92,7 @@ export default function PlayerCard({ segmentKey, ...player }: Props) {
         <div>
           K/A/D: {segment.kavg} / {segment.aavg} / {segment.davg}
         </div>
+        <div>New K/D: {segment.newKD?.toFixed(2) ?? "0.00"}</div>
       </div>
 
       {/* Last 5 results */}
@@ -126,3 +116,4 @@ export default function PlayerCard({ segmentKey, ...player }: Props) {
     </div>
   );
 }
+

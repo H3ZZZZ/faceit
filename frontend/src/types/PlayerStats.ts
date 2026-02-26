@@ -13,6 +13,7 @@ export type StatSegment = {
   kavg: number;
   aavg: number;
   davg: number;
+  newKD: number;
 };
 
 export type PlayerStats = {

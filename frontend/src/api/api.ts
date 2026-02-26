@@ -24,6 +24,7 @@ const PLAYER_IDS = [
   "259ef4a5-e636-4e17-b6a4-ff2e1a728426", // Kasper
   "91e5164d-866b-4797-95cc-5d6799b4dd5f", // Skejs
   "e377361b-c4fc-4439-8435-cee579d5fc96", // BacH
+  "a322c7b9-48c3-48f1-93b3-d1e6b91e984b", // VireZ
   // "17d8ecb7-01b6-4cb9-b1db-7555c878ce6d", // Carlsson
 ];
 
@@ -43,7 +44,7 @@ function isPlayerStats(value: unknown): value is PlayerStats {
 export async function fetchAllPlayerStats(): Promise<PlayerStats[]> {
   const results = await Promise.allSettled(
     PLAYER_IDS.map(async (id) => {
-      const res = await fetch(`${API_BASE}/stats/${id}`);
+      const res = await fetch(`${API_BASE}/stats/v4/${id}`);
       if (!res.ok) {
         throw new Error(`Stats fetch failed for ${id}: HTTP ${res.status}`);
       }
@@ -52,7 +53,7 @@ export async function fetchAllPlayerStats(): Promise<PlayerStats[]> {
         throw new Error(`Invalid player payload for ${id}`);
       }
       return data;
-    })
+    }),
   );
 
   const players: PlayerStats[] = [];
@@ -62,7 +63,11 @@ export async function fetchAllPlayerStats(): Promise<PlayerStats[]> {
     if (result.status === "fulfilled") {
       players.push(result.value);
     } else {
-      failures.push(result.reason instanceof Error ? result.reason.message : String(result.reason));
+      failures.push(
+        result.reason instanceof Error
+          ? result.reason.message
+          : String(result.reason),
+      );
     }
   }
 
@@ -78,7 +83,7 @@ export async function fetchAllPlayerStats(): Promise<PlayerStats[]> {
 }
 
 export async function fetchPlayerByNickname(
-  nickname: string
+  nickname: string,
 ): Promise<PlayerStatsFull> {
   const res = await fetch(`${API_BASE}/lifetime-stats/by-nickname/${nickname}`);
   if (!res.ok) throw new Error("Player not found");

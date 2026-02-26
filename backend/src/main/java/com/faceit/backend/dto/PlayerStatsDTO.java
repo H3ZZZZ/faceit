@@ -2,10 +2,13 @@ package com.faceit.backend.dto;
 
 import com.faceit.backend.model.FaceitMatchStatsResponse.MatchStats;
 import com.faceit.backend.model.FaceitMatchStatsResponse.MatchInnerStats;
+import com.faceit.backend.model.FaceitV4PlayerGameStatsResponse;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class PlayerStatsDTO {
 
@@ -35,6 +38,29 @@ public class PlayerStatsDTO {
         dto.last30 = computeStats(matches.subList(0, Math.min(30, matches.size())), eloHistory.subList(0, Math.min(30, eloHistory.size())), last5Results);
         dto.last50 = computeStats(matches.subList(0, Math.min(50, matches.size())), eloHistory.subList(0, Math.min(50, eloHistory.size())), last5Results);
         dto.last100 = computeStats(matches, eloHistory, last5Results);
+
+        return dto;
+    }
+
+    public static PlayerStatsDTO fromV4Matches(List<FaceitV4PlayerGameStatsResponse.Item> items, String playerId) {
+        List<FaceitV4PlayerGameStatsResponse.Item> safeItems = items != null ? items : List.of();
+
+        PlayerStatsDTO dto = new PlayerStatsDTO();
+        dto.playerId = playerId;
+        dto.lastActive = safeItems.isEmpty() ? 0 : parseV4Timestamp(safeItems.get(0).getStats());
+        dto.nickname = safeItems.isEmpty() ? "Unknown" : v4Stat(safeItems.get(0).getStats(), "Nickname");
+
+        List<String> last5Results = new ArrayList<>();
+        for (int i = 0; i < Math.min(5, safeItems.size()); i++) {
+            String result = v4Stat(safeItems.get(i).getStats(), "Result");
+            last5Results.add("1".equals(result) ? "W" : "L");
+        }
+        Collections.reverse(last5Results);
+
+        dto.last10 = computeStatsFromV4(safeItems.subList(0, Math.min(10, safeItems.size())), last5Results);
+        dto.last30 = computeStatsFromV4(safeItems.subList(0, Math.min(30, safeItems.size())), last5Results);
+        dto.last50 = computeStatsFromV4(safeItems.subList(0, Math.min(50, safeItems.size())), last5Results);
+        dto.last100 = computeStatsFromV4(safeItems.subList(0, Math.min(100, safeItems.size())), last5Results);
 
         return dto;
     }
@@ -75,6 +101,7 @@ public class PlayerStatsDTO {
         stats.setKAvg(matchCount > 0 ? (int) Math.round((double) kills / matchCount) : 0);
         stats.setAAvg(matchCount > 0 ? (int) Math.round((double) assists / matchCount) : 0);
         stats.setDAvg(matchCount > 0 ? (int) Math.round((double) deaths / matchCount) : 0);
+        stats.setNewKD(deaths > 0 ? round((double) kills / deaths, 2) : 0);
         stats.setWinStreakCount(winStreak);
 
         // 🔁 Use shared last5Results (from full 100-match list)
@@ -88,6 +115,49 @@ public class PlayerStatsDTO {
             stats.setEloChange(0);
         }
 
+
+        return stats;
+    }
+
+    private static GameSegmentStats computeStatsFromV4(List<FaceitV4PlayerGameStatsResponse.Item> items, List<String> last5Results) {
+        double totalKd = 0, totalKr = 0, totalAdr = 0, totalHsPercent = 0;
+        int kills = 0, assists = 0, deaths = 0, wins = 0;
+        int winStreak = 0;
+
+        for (int i = 0; i < items.size(); i++) {
+            Map<String, Object> statsMap = items.get(i).getStats();
+            totalKd += parseDouble(v4Stat(statsMap, "K/D Ratio"));
+            totalAdr += parseDouble(v4Stat(statsMap, "ADR"));
+            totalKr += parseDouble(v4Stat(statsMap, "K/R Ratio"));
+            totalHsPercent += parseDouble(v4Stat(statsMap, "Headshots %"));
+            kills += parseInt(v4Stat(statsMap, "Kills"));
+            assists += parseInt(v4Stat(statsMap, "Assists"));
+            deaths += parseInt(v4Stat(statsMap, "Deaths"));
+
+            boolean won = "1".equals(v4Stat(statsMap, "Result"));
+            if (won) wins++;
+            if (won && winStreak == i) winStreak++;
+        }
+
+        int matchCount = items.size();
+        GameSegmentStats stats = new GameSegmentStats();
+        stats.setAverageKd(matchCount > 0 ? round(totalKd / matchCount, 2) : 0);
+        stats.setAverageKr(matchCount > 0 ? round(totalKr / matchCount, 2) : 0);
+        stats.setAverageAdr(matchCount > 0 ? round(totalAdr / matchCount, 2) : 0);
+        stats.setAverageHsPercent(matchCount > 0 ? Math.round(totalHsPercent / matchCount) : 0);
+        stats.setWinRate(matchCount > 0 ? Math.round((double) wins / matchCount * 100) : 0);
+        stats.setWins(wins);
+        stats.setLosses(matchCount - wins);
+        stats.setMatchesPlayed(matchCount);
+        stats.setKAvg(matchCount > 0 ? (int) Math.round((double) kills / matchCount) : 0);
+        stats.setAAvg(matchCount > 0 ? (int) Math.round((double) assists / matchCount) : 0);
+        stats.setDAvg(matchCount > 0 ? (int) Math.round((double) deaths / matchCount) : 0);
+        stats.setNewKD(deaths > 0 ? round((double) kills / deaths, 2) : 0);
+        stats.setWinStreakCount(winStreak);
+        stats.setLast5Results(new ArrayList<>(last5Results));
+
+        // v4 payload does not reliably expose elo/elo_delta in the documented stats response.
+        stats.setEloChange(0);
 
         return stats;
     }
@@ -114,6 +184,43 @@ public class PlayerStatsDTO {
             } catch (Exception ignored) {}
         }
         return null;
+    }
+
+    private static String v4Stat(Map<String, Object> stats, String key) {
+        if (stats == null) return "";
+        Object value = stats.get(key);
+        return value == null ? "" : String.valueOf(value);
+    }
+
+    private static int parseInt(String value) {
+        try {
+            return Integer.parseInt(value);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private static double parseDouble(String value) {
+        try {
+            return Double.parseDouble(value);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private static long parseV4Timestamp(Map<String, Object> stats) {
+        String finished = v4Stat(stats, "Match Finished At");
+        try {
+            return Long.parseLong(finished);
+        } catch (Exception ignored) {
+        }
+
+        String createdAt = v4Stat(stats, "Created At");
+        try {
+            return Instant.parse(createdAt).toEpochMilli();
+        } catch (Exception ignored) {
+            return 0;
+        }
     }
 
 
@@ -148,6 +255,7 @@ public class PlayerStatsDTO {
         private int kAvg;
         private int aAvg;
         private int dAvg;
+        private double newKD;
         private int winStreakCount;
         private List<String> last5Results;
 
@@ -175,6 +283,8 @@ public class PlayerStatsDTO {
         public void setAAvg(int aAvg) { this.aAvg = aAvg; }
         public int getDAvg() { return dAvg; }
         public void setDAvg(int dAvg) { this.dAvg = dAvg; }
+        public double getNewKD() { return newKD; }
+        public void setNewKD(double newKD) { this.newKD = newKD; }
         public int getWinStreakCount() { return winStreakCount; }
         public void setWinStreakCount(int winStreakCount) { this.winStreakCount = winStreakCount; }
         public List<String> getLast5Results() { return last5Results; }
@@ -183,3 +293,5 @@ public class PlayerStatsDTO {
         }
     }
 }
+
+

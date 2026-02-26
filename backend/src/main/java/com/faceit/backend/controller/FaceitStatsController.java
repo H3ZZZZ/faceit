@@ -4,6 +4,7 @@ import com.faceit.backend.dto.PlayerStatsDTO;
 import com.faceit.backend.dto.SladeshTrackerDTO;
 import com.faceit.backend.dto.SladeshSimpleDTO;
 import com.faceit.backend.service.FaceitStatsService;
+import com.faceit.backend.service.FaceitStatsV4Service;
 import com.faceit.backend.service.SladeshTrackerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,10 +16,14 @@ import java.util.List;
 public class FaceitStatsController {
 
     private final FaceitStatsService statsService;
+    private final FaceitStatsV4Service statsV4Service;
     private final SladeshTrackerService sladeshTrackerService;
 
-    public FaceitStatsController(FaceitStatsService statsService, SladeshTrackerService sladeshTrackerService) {
+    public FaceitStatsController(FaceitStatsService statsService,
+                                 FaceitStatsV4Service statsV4Service,
+                                 SladeshTrackerService sladeshTrackerService) {
         this.statsService = statsService;
+        this.statsV4Service = statsV4Service;
         this.sladeshTrackerService = sladeshTrackerService;
     }
 
@@ -27,6 +32,12 @@ public class FaceitStatsController {
     public ResponseEntity<PlayerStatsDTO> getStatsForPlayer(@PathVariable String playerId) {
         PlayerStatsDTO stats = statsService.getLast30Stats(playerId);
         return ResponseEntity.ok(stats);
+    }
+
+    // v4-only variant: /api/stats/v4/{playerId}
+    @GetMapping("/v4/{playerId}")
+    public ResponseEntity<PlayerStatsDTO> getStatsForPlayerV4(@PathVariable String playerId) {
+        return ResponseEntity.ok(statsV4Service.getStatsForPlayer(playerId));
     }
 
     @GetMapping("/sladesh-tracker")
@@ -46,5 +57,11 @@ public class FaceitStatsController {
     public ResponseEntity<List<PlayerStatsDTO>> getStatsForPlayers(@RequestParam List<String> ids) {
         List<PlayerStatsDTO> stats = statsService.getStatsForPlayers(ids);
         return ResponseEntity.ok(stats);
+    }
+
+    // Multiple players via v4: /api/stats/v4?ids=ID1,ID2,...
+    @GetMapping("/v4")
+    public ResponseEntity<List<PlayerStatsDTO>> getStatsForPlayersV4(@RequestParam List<String> ids) {
+        return ResponseEntity.ok(statsV4Service.getStatsForPlayers(ids));
     }
 }
