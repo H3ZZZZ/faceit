@@ -51,6 +51,51 @@ function StatChip({
   );
 }
 
+function AdvancedChip({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-[#f59e0b]/10 bg-[#1a140d] px-3 py-2">
+      <div className="text-[10px] uppercase tracking-[0.22em] text-[#8d8d8d]">
+        {label}
+      </div>
+      <div className="mt-1 text-sm font-semibold text-[#ffd089]">{value}</div>
+    </div>
+  );
+}
+
+function AdvancedGridChip({
+  label,
+  items,
+}: {
+  label: string;
+  items: Array<{ label: string; value: string }>;
+}) {
+  return (
+    <div className="rounded-2xl border border-[#f59e0b]/10 bg-[#1a140d] px-3 py-2">
+      <div className="text-[10px] uppercase tracking-[0.22em] text-[#8d8d8d]">
+        {label}
+      </div>
+      <div className="mt-2 grid grid-cols-5 gap-2 text-center">
+        {items.map((item) => (
+          <div key={item.label} className="min-w-0">
+            <div className="text-[10px] uppercase tracking-[0.12em] text-[#8d8d8d]">
+              {item.label}
+            </div>
+            <div className="mt-1 text-sm font-semibold text-[#ffd089]">
+              {item.value}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function PlayerLeaderboardCard({
   player,
   rank,
@@ -214,6 +259,51 @@ function PlayerLeaderboardCard({
               )}
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-[#f59e0b]/10 bg-black/15 p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h4 className="text-sm font-semibold uppercase tracking-[0.24em] text-[#d1a55b]">
+            Advanced LAN Stats
+          </h4>
+          <div className="text-xs text-[#8d8d8d]">
+            Match-level v4 stats
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          <AdvancedChip
+            label="Entries"
+            value={`${player.entryWins}/${player.entryCount} won | ${Math.round(
+              player.entrySuccessRate,
+            )}% win | ${Math.round(player.entryAttemptRate)}% att.`}
+          />
+          <AdvancedChip
+            label="Clutches"
+            value={`${player.clutchWins} wins | ${player.clutchKills} kills`}
+          />
+          <AdvancedChip
+            label="MVP / AWP"
+            value={`${player.mvps} MVPs | ${player.sniperKills} AWP`}
+          />
+          <AdvancedGridChip
+            label="Pistols / Total Multi Kills"
+            items={[
+              { label: "Pistol", value: `${player.pistolKills}` },
+              { label: "2K", value: `${player.doubleKills}` },
+              { label: "3K", value: `${player.tripleKills}` },
+              { label: "4K", value: `${player.quadroKills}` },
+              { label: "ACE", value: `${player.pentaKills}` },
+            ]}
+          />
+          <AdvancedChip
+            label="Flash / Util"
+            value={`${player.enemiesFlashedPerRound.toFixed(
+              2,
+            )} flashed/r | ${player.utilityDamagePerRound.toFixed(
+              2,
+            )} util/r`}
+          />
         </div>
       </div>
     </article>

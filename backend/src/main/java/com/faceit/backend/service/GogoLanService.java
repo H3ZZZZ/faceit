@@ -10,6 +10,7 @@ import com.faceit.backend.dto.event.EventQueueComboDTO;
 import com.faceit.backend.dto.event.GogoLanEventDTO;
 import com.faceit.backend.model.FaceitMatchStatsResponse.MatchStats;
 import com.faceit.backend.model.FaceitPlayerInfo;
+import com.faceit.backend.model.FaceitV4MatchStatsResponse;
 import com.faceit.backend.service.util.FaceitLifetimeAggregator;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -78,6 +79,8 @@ public class GogoLanService {
         List<MatchStats> allMatches = eventMatchesByPlayer.values().stream()
                 .flatMap(List::stream)
                 .toList();
+        Map<String, AdvancedStatsAccumulator> advancedStatsByPlayer = buildAdvancedStats(eventMatchesByPlayer);
+        players.forEach(player -> applyAdvancedStats(player, advancedStatsByPlayer.get(player.getPlayerId())));
 
         GogoLanEventDTO dto = new GogoLanEventDTO();
         dto.setKey(properties.getKey());
@@ -103,6 +106,14 @@ public class GogoLanService {
                 .uri("/data/v4/players/{playerId}", playerId)
                 .retrieve()
                 .bodyToMono(FaceitPlayerInfo.class)
+                .block();
+    }
+
+    private FaceitV4MatchStatsResponse fetchV4MatchStats(String matchId) {
+        return authenticatedWebClient.get()
+                .uri("/data/v4/matches/{matchId}/stats", matchId)
+                .retrieve()
+                .bodyToMono(FaceitV4MatchStatsResponse.class)
                 .block();
     }
 
@@ -387,7 +398,16 @@ public class GogoLanService {
         return List.of(
                 award("LAN MVP", maxBy(active, Comparator.comparingDouble(this::mvpScore)), player -> String.format("%.1f", mvpScore(player)), "Composite score from ELO, K/D, ADR and win rate."),
                 award("Elo Farmer", maxBy(active, Comparator.comparingInt(EventPlayerStatsDTO::getTotalEloGain)), player -> signed(player.getTotalEloGain()), "Highest ELO gain during the event."),
-                award("Entry Fragger", maxBy(active, Comparator.comparingDouble(EventPlayerStatsDTO::getAvgKr)), player -> String.format("%.2f", player.getAvgKr()), "Best kill-per-round average."),
+                award("Top Fragger", maxBy(active, Comparator.comparingDouble(EventPlayerStatsDTO::getAvgKr)), player -> String.format("%.2f", player.getAvgKr()), "Best kill-per-round average."),
+                award("Entry Fragger", maxBy(active, Comparator.comparingDouble(this::entryAttemptScore)), player -> String.format("%.1f%% (%d attempts)", player.getEntryAttemptRate(), player.getEntryCount()), "Highest entry attempt rate."),
+                award("Entry Success", maxBy(active, Comparator.comparingDouble(this::entrySuccessScore)), player -> String.format("%.0f%%", player.getEntrySuccessRate()), "Best entry conversion rate with a minimum of three attempts."),
+                award("Clutcher", maxBy(active, Comparator.comparingInt(EventPlayerStatsDTO::getClutchWins)), player -> player.getClutchWins() + " wins", "Most 1v1 and 1v2 clutches won."),
+                award("MVP Farmer", maxBy(active, Comparator.comparingDouble(this::mvpPerGameScore)), player -> String.format("%.2f / game (%d total)", player.getMvpsPerGame(), player.getMvps()), "Highest MVP average per game."),
+                award("AWPer", maxBy(active, Comparator.comparingDouble(this::sniperPerGameScore)), player -> String.format("%.2f / game (%d total)", player.getSniperKillsPerGame(), player.getSniperKills()), "Highest sniper kill average per game."),
+                award("Pistol King", maxBy(active, Comparator.comparingDouble(this::pistolPerGameScore)), player -> String.format("%.2f / game (%d total)", player.getPistolKillsPerGame(), player.getPistolKills()), "Highest pistol kill average per game."),
+                award("Multi-kill Machine", maxBy(active, Comparator.comparingDouble(this::multiKillPerGameScore)), player -> String.format("%.2f / game (%d total)", player.getMultiKillRoundsPerGame(), player.getMultiKillRounds()), "Highest multi-kill rounds per game."),
+                award("Flash Support", maxBy(active, Comparator.comparingDouble(this::flashPerRoundScore)), player -> String.format("%.2f / round (%d total)", player.getEnemiesFlashedPerRound(), player.getEnemiesFlashed()), "Highest enemies flashed per round."),
+                award("Nade Damage", maxBy(active, Comparator.comparingDouble(EventPlayerStatsDTO::getUtilityDamagePerRound)), player -> String.format("%.2f / round", player.getUtilityDamagePerRound()), "Highest utility damage per round."),
                 award("Headshot Machine", maxBy(active, Comparator.comparingDouble(EventPlayerStatsDTO::getAvgHsPercent)), player -> String.format("%.0f%%", player.getAvgHsPercent()), "Highest average headshot percentage."),
                 award("Ironman", maxBy(active, Comparator.comparingInt(EventPlayerStatsDTO::getMatchesPlayed)), player -> player.getMatchesPlayed() + " matches", "Most games played during the LAN."),
                 award("Heater Check", maxBy(active, Comparator.comparingInt(EventPlayerStatsDTO::getLongestWinStreak)), player -> player.getLongestWinStreak() + " in a row", "Longest win streak."),
@@ -423,6 +443,41 @@ public class GogoLanService {
                 + player.getWinrate() * 0.4;
     }
 
+    private double entrySuccessScore(EventPlayerStatsDTO player) {
+        return player.getEntryCount() >= 3 ? player.getEntrySuccessRate() : -1;
+    }
+
+    private double entryAttemptScore(EventPlayerStatsDTO player) {
+        return player.getEntryCount() >= 3 ? player.getEntryAttemptRate() : -1;
+    }
+
+    private double mvpPerGameScore(EventPlayerStatsDTO player) {
+        return player.getMatchesPlayed() > 0 ? player.getMvpsPerGame() : -1;
+    }
+
+    private double sniperPerGameScore(EventPlayerStatsDTO player) {
+        return player.getMatchesPlayed() > 0 ? player.getSniperKillsPerGame() : -1;
+    }
+
+    private double pistolPerGameScore(EventPlayerStatsDTO player) {
+        return player.getMatchesPlayed() > 0 ? player.getPistolKillsPerGame() : -1;
+    }
+
+    private int multiKillScore(EventPlayerStatsDTO player) {
+        return player.getDoubleKills()
+                + player.getTripleKills() * 2
+                + player.getQuadroKills() * 3
+                + player.getPentaKills() * 5;
+    }
+
+    private double multiKillPerGameScore(EventPlayerStatsDTO player) {
+        return player.getMatchesPlayed() > 0 ? player.getMultiKillRoundsPerGame() : -1;
+    }
+
+    private double flashPerRoundScore(EventPlayerStatsDTO player) {
+        return player.getRoundsPlayed() > 0 ? player.getEnemiesFlashedPerRound() : -1;
+    }
+
     private int winrate(int wins, int totalMatches) {
         return totalMatches > 0 ? (int) Math.round((double) wins / totalMatches * 100) : 0;
     }
@@ -436,6 +491,89 @@ public class GogoLanService {
     }
 
     private record PlayerMatchRef(String playerId, MatchStats match) {}
+
+    private Map<String, AdvancedStatsAccumulator> buildAdvancedStats(Map<String, List<MatchStats>> matchesByPlayer) {
+        Map<String, MatchStats> uniqueMatches = matchesByPlayer.values().stream()
+                .flatMap(List::stream)
+                .collect(Collectors.toMap(MatchStats::getMatchId, Function.identity(), (left, right) -> left));
+
+        Map<String, AdvancedStatsAccumulator> accumulators = new HashMap<>();
+        uniqueMatches.keySet().forEach(matchId -> {
+            FaceitV4MatchStatsResponse response = fetchV4MatchStats(matchId);
+            if (response == null || response.getRounds() == null) {
+                return;
+            }
+
+            response.getRounds().forEach(round -> {
+                int roundsPlayed = parseInt(round.getRoundStats(), "Rounds");
+                if (round.getTeams() == null) {
+                    return;
+                }
+                round.getTeams().forEach(team -> {
+                    if (team.getPlayers() == null) {
+                        return;
+                    }
+                    team.getPlayers().forEach(player -> {
+                        if (!properties.getPlayerIds().contains(player.getPlayerId())) {
+                            return;
+                        }
+                        accumulators
+                                .computeIfAbsent(player.getPlayerId(), ignored -> new AdvancedStatsAccumulator())
+                                .add(player.getPlayerStats(), roundsPlayed);
+                    });
+                });
+            });
+        });
+
+        return accumulators;
+    }
+
+    private void applyAdvancedStats(EventPlayerStatsDTO player, AdvancedStatsAccumulator accumulator) {
+        if (accumulator == null) {
+            return;
+        }
+
+        player.setEntryCount(accumulator.entryCount);
+        player.setEntryWins(accumulator.entryWins);
+        player.setEntrySuccessRate(accumulator.entryCount > 0 ? round((double) accumulator.entryWins / accumulator.entryCount * 100.0) : 0);
+        player.setEntryAttemptRate(accumulator.roundsPlayed > 0 ? round((double) accumulator.entryCount / accumulator.roundsPlayed * 100.0) : 0);
+        player.setClutch1v1Wins(accumulator.clutch1v1Wins);
+        player.setClutch1v2Wins(accumulator.clutch1v2Wins);
+        player.setClutchWins(accumulator.clutch1v1Wins + accumulator.clutch1v2Wins);
+        player.setClutchKills(accumulator.clutchKills);
+        player.setMvps(accumulator.mvps);
+        player.setMvpsPerGame(player.getMatchesPlayed() > 0 ? round((double) accumulator.mvps / player.getMatchesPlayed()) : 0);
+        player.setSniperKills(accumulator.sniperKills);
+        player.setSniperKillsPerGame(player.getMatchesPlayed() > 0 ? round((double) accumulator.sniperKills / player.getMatchesPlayed()) : 0);
+        player.setPistolKills(accumulator.pistolKills);
+        player.setPistolKillsPerGame(player.getMatchesPlayed() > 0 ? round((double) accumulator.pistolKills / player.getMatchesPlayed()) : 0);
+        player.setDoubleKills(accumulator.doubleKills);
+        player.setTripleKills(accumulator.tripleKills);
+        player.setQuadroKills(accumulator.quadroKills);
+        player.setPentaKills(accumulator.pentaKills);
+        player.setMultiKillRounds(accumulator.doubleKills + accumulator.tripleKills + accumulator.quadroKills + accumulator.pentaKills);
+        player.setMultiKillRoundsPerGame(player.getMatchesPlayed() > 0 ? round((double) player.getMultiKillRounds() / player.getMatchesPlayed()) : 0);
+        player.setFlashSuccesses(accumulator.flashSuccesses);
+        player.setEnemiesFlashed(accumulator.enemiesFlashed);
+        player.setEnemiesFlashedPerRound(accumulator.roundsPlayed > 0 ? round((double) accumulator.enemiesFlashed / accumulator.roundsPlayed) : 0);
+        player.setFlashSuccessRate(accumulator.flashCount > 0 ? round((double) accumulator.flashSuccesses / accumulator.flashCount * 100.0) : 0);
+        player.setUtilityDamage(accumulator.utilityDamage);
+        player.setUtilitySuccesses(accumulator.utilitySuccesses);
+        player.setUtilityCount(accumulator.utilityCount);
+        player.setRoundsPlayed(accumulator.roundsPlayed);
+        player.setUtilityDamagePerRound(accumulator.roundsPlayed > 0 ? round((double) accumulator.utilityDamage / accumulator.roundsPlayed) : 0);
+    }
+
+    private int parseInt(Map<String, String> stats, String key) {
+        if (stats == null) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(stats.getOrDefault(key, "0"));
+        } catch (NumberFormatException ignored) {
+            return 0;
+        }
+    }
 
     private static class QueueAccumulator {
         private final List<String> nicknames;
@@ -472,6 +610,50 @@ public class GogoLanService {
             dto.setWinrate(matchesPlayed > 0 ? (int) Math.round((double) wins / matchesPlayed * 100) : 0);
             dto.setTotalEloGain(totalEloGain);
             return dto;
+        }
+    }
+
+    private class AdvancedStatsAccumulator {
+        private int entryCount;
+        private int entryWins;
+        private int clutch1v1Wins;
+        private int clutch1v2Wins;
+        private int clutchKills;
+        private int mvps;
+        private int sniperKills;
+        private int pistolKills;
+        private int doubleKills;
+        private int tripleKills;
+        private int quadroKills;
+        private int pentaKills;
+        private int flashCount;
+        private int flashSuccesses;
+        private int enemiesFlashed;
+        private int utilityDamage;
+        private int utilitySuccesses;
+        private int utilityCount;
+        private int roundsPlayed;
+
+        private void add(Map<String, String> stats, int roundCount) {
+            entryCount += parseInt(stats, "Entry Count");
+            entryWins += parseInt(stats, "Entry Wins");
+            clutch1v1Wins += parseInt(stats, "1v1Wins");
+            clutch1v2Wins += parseInt(stats, "1v2Wins");
+            clutchKills += parseInt(stats, "Clutch Kills");
+            mvps += parseInt(stats, "MVPs");
+            sniperKills += parseInt(stats, "Sniper Kills");
+            pistolKills += parseInt(stats, "Pistol Kills");
+            doubleKills += parseInt(stats, "Double Kills");
+            tripleKills += parseInt(stats, "Triple Kills");
+            quadroKills += parseInt(stats, "Quadro Kills");
+            pentaKills += parseInt(stats, "Penta Kills");
+            flashCount += parseInt(stats, "Flash Count");
+            flashSuccesses += parseInt(stats, "Flash Successes");
+            enemiesFlashed += parseInt(stats, "Enemies Flashed");
+            utilityDamage += parseInt(stats, "Utility Damage");
+            utilitySuccesses += parseInt(stats, "Utility Successes");
+            utilityCount += parseInt(stats, "Utility Count");
+            roundsPlayed += roundCount;
         }
     }
 }

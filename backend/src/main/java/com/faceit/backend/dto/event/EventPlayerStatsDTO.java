@@ -33,6 +33,35 @@ public class EventPlayerStatsDTO {
     private String mostPlayedMap;
     private String bestMap;
     private String worstMap;
+    private int entryCount;
+    private int entryWins;
+    private double entrySuccessRate;
+    private double entryAttemptRate;
+    private int clutchWins;
+    private int clutch1v1Wins;
+    private int clutch1v2Wins;
+    private int clutchKills;
+    private int mvps;
+    private double mvpsPerGame;
+    private int sniperKills;
+    private double sniperKillsPerGame;
+    private int pistolKills;
+    private double pistolKillsPerGame;
+    private int doubleKills;
+    private int tripleKills;
+    private int quadroKills;
+    private int pentaKills;
+    private int multiKillRounds;
+    private double multiKillRoundsPerGame;
+    private int flashSuccesses;
+    private int enemiesFlashed;
+    private double enemiesFlashedPerRound;
+    private double flashSuccessRate;
+    private int utilityDamage;
+    private int utilitySuccesses;
+    private int utilityCount;
+    private int roundsPlayed;
+    private double utilityDamagePerRound;
     private EventDayStatsDTO bestDay;
     private EventDayStatsDTO worstDay;
     private List<EventDayStatsDTO> dailyStats;
@@ -252,6 +281,238 @@ public class EventPlayerStatsDTO {
 
     public void setWorstMap(String worstMap) {
         this.worstMap = worstMap;
+    }
+
+    public int getEntryCount() {
+        return entryCount;
+    }
+
+    public void setEntryCount(int entryCount) {
+        this.entryCount = entryCount;
+    }
+
+    public int getEntryWins() {
+        return entryWins;
+    }
+
+    public void setEntryWins(int entryWins) {
+        this.entryWins = entryWins;
+    }
+
+    public double getEntrySuccessRate() {
+        return entrySuccessRate;
+    }
+
+    public void setEntrySuccessRate(double entrySuccessRate) {
+        this.entrySuccessRate = entrySuccessRate;
+    }
+
+    public double getEntryAttemptRate() {
+        return entryAttemptRate;
+    }
+
+    public void setEntryAttemptRate(double entryAttemptRate) {
+        this.entryAttemptRate = entryAttemptRate;
+    }
+
+    public int getClutchWins() {
+        return clutchWins;
+    }
+
+    public void setClutchWins(int clutchWins) {
+        this.clutchWins = clutchWins;
+    }
+
+    public int getClutch1v1Wins() {
+        return clutch1v1Wins;
+    }
+
+    public void setClutch1v1Wins(int clutch1v1Wins) {
+        this.clutch1v1Wins = clutch1v1Wins;
+    }
+
+    public int getClutch1v2Wins() {
+        return clutch1v2Wins;
+    }
+
+    public void setClutch1v2Wins(int clutch1v2Wins) {
+        this.clutch1v2Wins = clutch1v2Wins;
+    }
+
+    public int getClutchKills() {
+        return clutchKills;
+    }
+
+    public void setClutchKills(int clutchKills) {
+        this.clutchKills = clutchKills;
+    }
+
+    public int getMvps() {
+        return mvps;
+    }
+
+    public void setMvps(int mvps) {
+        this.mvps = mvps;
+    }
+
+    public double getMvpsPerGame() {
+        return mvpsPerGame;
+    }
+
+    public void setMvpsPerGame(double mvpsPerGame) {
+        this.mvpsPerGame = mvpsPerGame;
+    }
+
+    public int getSniperKills() {
+        return sniperKills;
+    }
+
+    public void setSniperKills(int sniperKills) {
+        this.sniperKills = sniperKills;
+    }
+
+    public double getSniperKillsPerGame() {
+        return sniperKillsPerGame;
+    }
+
+    public void setSniperKillsPerGame(double sniperKillsPerGame) {
+        this.sniperKillsPerGame = sniperKillsPerGame;
+    }
+
+    public int getPistolKills() {
+        return pistolKills;
+    }
+
+    public void setPistolKills(int pistolKills) {
+        this.pistolKills = pistolKills;
+    }
+
+    public double getPistolKillsPerGame() {
+        return pistolKillsPerGame;
+    }
+
+    public void setPistolKillsPerGame(double pistolKillsPerGame) {
+        this.pistolKillsPerGame = pistolKillsPerGame;
+    }
+
+    public int getDoubleKills() {
+        return doubleKills;
+    }
+
+    public void setDoubleKills(int doubleKills) {
+        this.doubleKills = doubleKills;
+    }
+
+    public int getTripleKills() {
+        return tripleKills;
+    }
+
+    public void setTripleKills(int tripleKills) {
+        this.tripleKills = tripleKills;
+    }
+
+    public int getQuadroKills() {
+        return quadroKills;
+    }
+
+    public void setQuadroKills(int quadroKills) {
+        this.quadroKills = quadroKills;
+    }
+
+    public int getPentaKills() {
+        return pentaKills;
+    }
+
+    public void setPentaKills(int pentaKills) {
+        this.pentaKills = pentaKills;
+    }
+
+    public int getMultiKillRounds() {
+        return multiKillRounds;
+    }
+
+    public void setMultiKillRounds(int multiKillRounds) {
+        this.multiKillRounds = multiKillRounds;
+    }
+
+    public double getMultiKillRoundsPerGame() {
+        return multiKillRoundsPerGame;
+    }
+
+    public void setMultiKillRoundsPerGame(double multiKillRoundsPerGame) {
+        this.multiKillRoundsPerGame = multiKillRoundsPerGame;
+    }
+
+    public int getFlashSuccesses() {
+        return flashSuccesses;
+    }
+
+    public void setFlashSuccesses(int flashSuccesses) {
+        this.flashSuccesses = flashSuccesses;
+    }
+
+    public int getEnemiesFlashed() {
+        return enemiesFlashed;
+    }
+
+    public void setEnemiesFlashed(int enemiesFlashed) {
+        this.enemiesFlashed = enemiesFlashed;
+    }
+
+    public double getEnemiesFlashedPerRound() {
+        return enemiesFlashedPerRound;
+    }
+
+    public void setEnemiesFlashedPerRound(double enemiesFlashedPerRound) {
+        this.enemiesFlashedPerRound = enemiesFlashedPerRound;
+    }
+
+    public double getFlashSuccessRate() {
+        return flashSuccessRate;
+    }
+
+    public void setFlashSuccessRate(double flashSuccessRate) {
+        this.flashSuccessRate = flashSuccessRate;
+    }
+
+    public int getUtilityDamage() {
+        return utilityDamage;
+    }
+
+    public void setUtilityDamage(int utilityDamage) {
+        this.utilityDamage = utilityDamage;
+    }
+
+    public int getUtilitySuccesses() {
+        return utilitySuccesses;
+    }
+
+    public void setUtilitySuccesses(int utilitySuccesses) {
+        this.utilitySuccesses = utilitySuccesses;
+    }
+
+    public int getUtilityCount() {
+        return utilityCount;
+    }
+
+    public void setUtilityCount(int utilityCount) {
+        this.utilityCount = utilityCount;
+    }
+
+    public int getRoundsPlayed() {
+        return roundsPlayed;
+    }
+
+    public void setRoundsPlayed(int roundsPlayed) {
+        this.roundsPlayed = roundsPlayed;
+    }
+
+    public double getUtilityDamagePerRound() {
+        return utilityDamagePerRound;
+    }
+
+    public void setUtilityDamagePerRound(double utilityDamagePerRound) {
+        this.utilityDamagePerRound = utilityDamagePerRound;
     }
 
     public EventDayStatsDTO getBestDay() {
