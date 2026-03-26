@@ -1,6 +1,7 @@
 import type { PlayerStats } from "../types/PlayerStats";
 import type { PlayerStatsFull } from "../types/PlayerStatsFull";
 import type { SladeshSimple } from "../types/SladeshSimple";
+import type { GogoLanEvent } from "../types/GogoLanEvent";
 
 const API_BASE = `${import.meta.env.VITE_API_BASE_URL}`;
 
@@ -104,5 +105,17 @@ export async function fetchSharedStats(nicknames: string[]) {
   });
 
   if (!res.ok) throw new Error("Failed to fetch shared stats");
+  return res.json();
+}
+
+export async function fetchGogoLanEvent(start?: string, end?: string): Promise<GogoLanEvent> {
+  const params = new URLSearchParams();
+  if (start) params.set("start", start);
+  if (end) params.set("end", end);
+  const query = params.toString();
+  const res = await fetch(
+    `${API_BASE}/events/gogo-lan${query ? `?${query}` : ""}`,
+  );
+  if (!res.ok) throw new Error("Failed to fetch Gogo LAN event");
   return res.json();
 }

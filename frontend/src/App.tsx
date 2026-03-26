@@ -7,6 +7,7 @@ import PlayerDetails from "./pages/PlayerDetails";
 import SearchPage from "./pages/SearchPage";
 import SladeshTracker from "./pages/SladeshTracker";
 import SharedStatsPage from "./pages/SharedStatsPage";
+import GogoLanPage from "./pages/GogoLanPage";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/player/:nickname" element={<PlayerDetails />} />
           <Route path="/sladesh-tracker" element={<SladeshTracker />} />
           <Route path="/shared-stats" element={<SharedStatsPage />} />
+          <Route path="/gogo-lan" element={<GogoLanPage />} />
         </Routes>
       </main>
     </div>

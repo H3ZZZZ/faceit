@@ -5,7 +5,8 @@ import {
   FaChartLine,
   FaStar,
   FaUserSecret,
-  FaUsers
+  FaUsers,
+  FaTrophy
 } from "react-icons/fa";
 
 export default function Sidebar() {
@@ -38,6 +39,7 @@ export default function Sidebar() {
       <div className="flex flex-col items-start w-full px-4 mt-4 space-y-1">
         {navLink("/", "Home", FaHome)}
         {navLink("/gogo-tracker", "GOGO Tracker", FaChartLine)}
+        {navLink("/gogo-lan", "GOGO LAN", FaTrophy)}
         {navLink("/sladesh-tracker", "Sladesh Tracker", FaUserSecret)}
         {navLink("/shared-stats", "Played Together", FaUsers)}
         {navLink("/search", "Search Player", FaSearch)}
