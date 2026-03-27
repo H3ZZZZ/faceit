@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import dayjs from "dayjs";
 import { useSearchParams } from "react-router-dom";
+import { getIconRule, getPlayerIcons } from "../utils/icons";
 import { fetchGogoLanEvent } from "../api/api";
 import type {
   EventDayStats,
@@ -10,8 +11,19 @@ import type {
   GogoLanEvent,
 } from "../types/GogoLanEvent";
 
-const CACHE_KEY = "gogo_lan_event_cache";
+const CACHE_KEY = "gogo_lan_event_cache_v2";
 const CACHE_DURATION = 5 * 60 * 1000;
+
+type RankByOption = "elo" | "kd" | "kr" | "adr" | "winrate" | "matches";
+
+const RANK_BY_OPTIONS: Array<{ value: RankByOption; label: string; helper: string }> = [
+  { value: "elo", label: "ELO gain", helper: "ELO gain, then K/D" },
+  { value: "kd", label: "K/D", helper: "K/D, then K/R" },
+  { value: "kr", label: "K/R", helper: "K/R, then K/D" },
+  { value: "adr", label: "ADR", helper: "ADR, then K/R" },
+  { value: "winrate", label: "Win rate", helper: "Win rate, then matches" },
+  { value: "matches", label: "Matches played", helper: "Matches, then ELO gain" },
+];
 
 function signed(value: number) {
   return value > 0 ? `+${value}` : `${value}`;
@@ -31,6 +43,7 @@ function stackLabel(size: number) {
   if (size === 5) return "5-Stacks";
   return `${size}-Stacks`;
 }
+
 
 function StatChip({
   label,
@@ -103,6 +116,21 @@ function PlayerLeaderboardCard({
   player: EventPlayerStats;
   rank: number;
 }) {
+  const icons =
+    player.matchesPlayed > 0
+      ? getPlayerIcons({
+          averageKr: player.avgKr,
+          averageKd: player.avgKd,
+          winRate: player.winrate,
+          averageHsPercent: player.avgHsPercent,
+          winstreak:
+            player.last5Results.length === 5 &&
+            player.last5Results.every((result) => result === "W")
+              ? 5
+              : 0,
+        })
+      : [];
+
   return (
     <article className="rounded-[28px] border border-[#f59e0b]/15 bg-[linear-gradient(180deg,rgba(30,30,30,0.95),rgba(17,17,17,0.92))] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
       <div className="flex items-start justify-between gap-4">
@@ -143,6 +171,23 @@ function PlayerLeaderboardCard({
               />
               <span>{player.matchesPlayed} matches</span>
             </div>
+            {icons.length > 0 ? (
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {icons.map((icon) => {
+                  const { label, rule } = getIconRule(icon);
+
+                  return (
+                    <div
+                      key={`${player.playerId}-${icon}`}
+                      className="rounded-full border border-white/8 bg-white/4 p-1"
+                      title={`${label}: ${rule}`}
+                    >
+                      <img src={`/icons/${icon}.png`} alt={label} className="h-5 w-5" />
+                    </div>
+                  );
+                })}
+              </div>
+            ) : null}
           </div>
         </div>
         <div
@@ -163,10 +208,6 @@ function PlayerLeaderboardCard({
         <StatChip label="ADR" value={player.avgAdr.toFixed(1)} />
         <StatChip label="K/R" value={player.avgKr.toFixed(2)} />
         <StatChip label="HS" value={`${Math.round(player.avgHsPercent)}%`} />
-        <StatChip
-          label="Session Time"
-          value={`${player.totalSessionHours.toFixed(1)}h`}
-        />
         <StatChip
           label="Maps"
           value={`${player.mostPlayedMap ?? "-"} / ${player.bestMap ?? "-"}`}
@@ -192,7 +233,7 @@ function PlayerLeaderboardCard({
                 className={`rounded-2xl px-3 py-3 ${dailyTone(day)}`}
               >
                 <div className="text-[11px] uppercase tracking-[0.16em]">
-                  {dayjs(day.date).format("ddd D")}
+                  {dayjs(day.date).format("ddd D MMM")}
                 </div>
                 <div className="mt-2 text-xl font-semibold">
                   {day.matchesPlayed}
@@ -209,55 +250,37 @@ function PlayerLeaderboardCard({
 
         <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
           <h4 className="text-sm font-semibold uppercase tracking-[0.24em] text-[#d1a55b]">
-            Player Notes
+            Map Stats
           </h4>
-          <div className="mt-3 space-y-3 text-sm text-[#d7d7d7]">
-            <div>
-              <span className="text-[#8d8d8d]">Best day:</span>{" "}
-              {player.bestDay
-                ? `${dayjs(player.bestDay.date).format("MMM D")} (${signed(
-                    player.bestDay.totalEloGain,
-                  )} ELO)`
-                : "No data"}
-            </div>
-            <div>
-              <span className="text-[#8d8d8d]">Worst day:</span>{" "}
-              {player.worstDay
-                ? `${dayjs(player.worstDay.date).format("MMM D")} (${signed(
-                    player.worstDay.totalEloGain,
-                  )} ELO)`
-                : "No data"}
-            </div>
-            <div>
-              <span className="text-[#8d8d8d]">Best map:</span>{" "}
-              {player.bestMap ?? "No data"}
-            </div>
-            <div>
-              <span className="text-[#8d8d8d]">Worst map:</span>{" "}
-              {player.worstMap ?? "No data"}
-            </div>
-            <div>
-              <span className="text-[#8d8d8d]">K/A/D:</span> {player.kavg}/
-              {player.aavg}/{player.davg}
-            </div>
-            <div className="flex gap-1 pt-1">
-              {player.last5Results.length > 0 ? (
-                player.last5Results.map((result, index) => (
-                  <span
-                    key={`${player.playerId}-${index}`}
-                    className={`rounded px-2 py-1 text-xs font-bold ${
-                      result === "W"
-                        ? "bg-emerald-500/20 text-emerald-300"
-                        : "bg-rose-500/20 text-rose-300"
-                    }`}
+          <div className="mt-3 text-sm text-[#d7d7d7]">
+            {player.mapStats.length > 0 ? (
+              <div className="space-y-2">
+                {player.mapStats.map((mapStat) => (
+                  <div
+                    key={mapStat.map}
+                    className="rounded-xl border border-white/8 bg-white/4 px-3 py-2"
                   >
-                    {result}
-                  </span>
-                ))
-              ) : (
-                <span className="text-xs text-[#8d8d8d]">No recent results</span>
-              )}
-            </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-semibold text-white">{mapStat.map}</span>
+                      <span
+                        className={
+                          mapStat.totalEloGain >= 0
+                            ? "text-emerald-300"
+                            : "text-rose-300"
+                        }
+                      >
+                        {signed(mapStat.totalEloGain)} ELO
+                      </span>
+                    </div>
+                    <div className="mt-1 text-xs text-[#bdbdbd]">
+                      {mapStat.matches} played | {mapStat.wins}-{mapStat.losses} | {mapStat.winrate}% WR | {mapStat.avgKd.toFixed(2)} K/D | {mapStat.avgKr.toFixed(2)} K/R | {mapStat.avgAdr.toFixed(1)} ADR | {Math.round(mapStat.avgHsPercent)}% HS
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              "No map data"
+            )}
           </div>
         </div>
       </div>
@@ -309,20 +332,44 @@ function PlayerLeaderboardCard({
     </article>
   );
 }
-
 function AwardCard({
   title,
   winner,
+  winners,
   value,
   description,
 }: GogoLanEvent["awards"][number]) {
+  const displayWinners = winners?.length ? winners : [{ playerId: winner, nickname: winner, avatar: null }];
+
   return (
     <article className="rounded-[24px] border border-[#c98d2d]/15 bg-[#16120d] p-4">
       <div className="text-[11px] uppercase tracking-[0.24em] text-[#d7a04b]">
         {title}
       </div>
-      <div className="mt-2 text-lg font-semibold text-white">{winner}</div>
-      <div className="mt-1 text-sm font-medium text-[#ffd18a]">{value}</div>
+      <div className="mt-3 flex flex-wrap gap-3">
+        {displayWinners.map((awardWinner) => (
+          <div
+            key={awardWinner.playerId}
+            className="flex items-center gap-3 rounded-2xl border border-white/8 bg-white/4 px-3 py-2"
+          >
+            {awardWinner.avatar ? (
+              <img
+                src={awardWinner.avatar}
+                alt={awardWinner.nickname}
+                className="h-10 w-10 rounded-xl object-cover"
+              />
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#312519] text-sm font-semibold text-[#ffcf8a]">
+                {awardWinner.nickname.slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            <div className="text-sm font-semibold text-white">
+              {awardWinner.nickname}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 text-sm font-medium text-[#ffd18a]">{value}</div>
       <p className="mt-2 text-sm text-[#a7a7a7]">{description}</p>
     </article>
   );
@@ -429,6 +476,7 @@ export default function GogoLanPage() {
   const [searchParams] = useSearchParams();
   const [event, setEvent] = useState<GogoLanEvent | null>(null);
   const [loading, setLoading] = useState(true);
+  const [rankBy, setRankBy] = useState<RankByOption>("elo");
   const start = searchParams.get("start") ?? undefined;
   const end = searchParams.get("end") ?? undefined;
   const cacheKey = `${CACHE_KEY}:${start ?? "default"}:${end ?? "default"}`;
@@ -462,6 +510,62 @@ export default function GogoLanPage() {
       new Set(event.queueCombos.map((combo) => combo.lineupSize)),
     ).sort((a, b) => a - b);
   }, [event]);
+
+  const leaderboardPlayers = useMemo(() => {
+    if (!event) return [];
+
+    const valueFor = (player: EventPlayerStats, key: RankByOption) => {
+      switch (key) {
+        case "kd":
+          return player.avgKd;
+        case "kr":
+          return player.avgKr;
+        case "adr":
+          return player.avgAdr;
+        case "winrate":
+          return player.winrate;
+        case "matches":
+          return player.matchesPlayed;
+        case "elo":
+        default:
+          return player.totalEloGain;
+      }
+    };
+
+    const tieBreakers: RankByOption[] = (() => {
+      switch (rankBy) {
+        case "kd":
+          return ["kr", "elo", "matches"];
+        case "kr":
+          return ["kd", "elo", "matches"];
+        case "adr":
+          return ["kr", "kd", "elo"];
+        case "winrate":
+          return ["matches", "elo", "kd"];
+        case "matches":
+          return ["elo", "kd", "kr"];
+        case "elo":
+        default:
+          return ["kd", "kr", "matches"];
+      }
+    })();
+
+    return [...event.players].sort((left, right) => {
+      const primary = valueFor(right, rankBy) - valueFor(left, rankBy);
+      if (primary !== 0) return primary;
+
+      for (const tieBreaker of tieBreakers) {
+        const delta = valueFor(right, tieBreaker) - valueFor(left, tieBreaker);
+        if (delta !== 0) return delta;
+      }
+
+      return left.nickname.localeCompare(right.nickname);
+    });
+  }, [event, rankBy]);
+
+  const rankByLabel =
+    RANK_BY_OPTIONS.find((option) => option.value === rankBy)?.helper ??
+    "ELO gain, then K/D";
 
   if (loading) {
     return <div className="p-6 text-white">Loading Gogo LAN...</div>;
@@ -515,14 +619,30 @@ export default function GogoLanPage() {
       </section>
 
       <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold">LAN Leaderboard</h2>
-          <div className="text-xs uppercase tracking-[0.24em] text-[#7f7f7f]">
-            Ranked by ELO gain, then K/D
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold">LAN Leaderboard</h2>
+            <div className="text-xs uppercase tracking-[0.24em] text-[#7f7f7f]">
+              Ranked by {rankByLabel}
+            </div>
           </div>
+          <label className="flex items-center gap-3 self-start rounded-2xl border border-white/8 bg-[#131313] px-4 py-2 text-sm text-[#d7d7d7] sm:self-auto">
+            <span className="uppercase tracking-[0.18em] text-[#8d8d8d]">Rank by</span>
+            <select
+              value={rankBy}
+              onChange={(event) => setRankBy(event.target.value as RankByOption)}
+              className="bg-transparent text-white outline-none"
+            >
+              {RANK_BY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value} className="bg-[#111111]">
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
         <div className="space-y-4">
-          {event.players.map((player, index) => (
+          {leaderboardPlayers.map((player, index) => (
             <PlayerLeaderboardCard
               key={player.playerId}
               player={player}

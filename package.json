@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "frontend:dev": "npm --prefix frontend run dev",
+    "backend:dev": ".\\backend\\mvnw.cmd -f .\\backend\\pom.xml spring-boot:run \"-Dspring-boot.run.profiles=dev\""
+  },
   "dependencies": {
     "react-icons": "^5.5.0"
   }

@@ -18,6 +18,7 @@ public class EventDayStatsDTO {
     private int aavg;
     private int davg;
     private double sessionHours;
+    private int sessionMinutes;
     private List<String> lastResults;
 
     public LocalDate getDate() {
@@ -130,6 +131,14 @@ public class EventDayStatsDTO {
 
     public void setSessionHours(double sessionHours) {
         this.sessionHours = sessionHours;
+    }
+
+    public int getSessionMinutes() {
+        return sessionMinutes;
+    }
+
+    public void setSessionMinutes(int sessionMinutes) {
+        this.sessionMinutes = sessionMinutes;
     }
 
     public List<String> getLastResults() {

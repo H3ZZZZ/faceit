@@ -13,6 +13,7 @@ export type EventDayStats = {
   aavg: number;
   davg: number;
   sessionHours: number;
+  sessionMinutes?: number;
   lastResults: string[];
 };
 
@@ -59,6 +60,7 @@ export type EventPlayerStats = {
   longestLossStreak: number;
   last5Results: string[];
   totalSessionHours: number;
+  totalSessionMinutes?: number;
   lastMatchAt: string | null;
   mostPlayedMap: string | null;
   bestMap: string | null;
@@ -98,9 +100,16 @@ export type EventPlayerStats = {
   mapStats: EventMapStats[];
 };
 
+export type EventAwardWinner = {
+  playerId: string;
+  nickname: string;
+  avatar: string | null;
+};
+
 export type EventAward = {
   title: string;
   winner: string;
+  winners?: EventAwardWinner[];
   value: string;
   description: string;
 };

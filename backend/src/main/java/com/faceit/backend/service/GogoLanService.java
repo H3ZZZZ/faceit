@@ -3,6 +3,7 @@ package com.faceit.backend.service;
 import com.faceit.backend.config.GogoLanProperties;
 import com.faceit.backend.dto.MapStatsDTO;
 import com.faceit.backend.dto.event.EventAwardDTO;
+import com.faceit.backend.dto.event.EventAwardWinnerDTO;
 import com.faceit.backend.dto.event.EventDayStatsDTO;
 import com.faceit.backend.dto.event.EventMapSummaryDTO;
 import com.faceit.backend.dto.event.EventPlayerStatsDTO;
@@ -19,7 +20,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -33,9 +33,14 @@ import java.util.stream.Collectors;
 
 @Service
 public class GogoLanService {
+    private static final long CACHE_DURATION_MILLIS = 5 * 60 * 1000;
+    private static final long MATCH_STATS_CACHE_DURATION_MILLIS = 60 * 60 * 1000;
+
     private final WebClient unauthenticatedWebClient;
     private final WebClient authenticatedWebClient;
     private final GogoLanProperties properties;
+    private final Map<String, CacheEntry> eventCache = new ConcurrentHashMap<>();
+    private final Map<String, MatchStatsCacheEntry> v4MatchStatsCache = new ConcurrentHashMap<>();
 
     public GogoLanService(@Qualifier("unauthenticatedWebClient") WebClient unauthenticatedWebClient,
                           @Qualifier("authenticatedWebClient") WebClient authenticatedWebClient,
@@ -52,6 +57,12 @@ public class GogoLanService {
     public GogoLanEventDTO getEvent(LocalDate startDateOverride, LocalDate endDateOverride) {
         LocalDate startDate = startDateOverride != null ? startDateOverride : properties.getStartDate();
         LocalDate endDate = endDateOverride != null ? endDateOverride : properties.getEndDate();
+        String cacheKey = startDate + "|" + endDate;
+        long now = System.currentTimeMillis();
+        CacheEntry cached = eventCache.get(cacheKey);
+        if (cached != null && now < cached.expiresAtMillis()) {
+            return cached.dto();
+        }
         ZoneId zoneId = ZoneId.of(properties.getZoneId());
         long startMillis = startDate.atStartOfDay(zoneId).toInstant().toEpochMilli();
         long endMillis = endDate.plusDays(1).atStartOfDay(zoneId).minusNanos(1).toInstant().toEpochMilli();
@@ -64,6 +75,10 @@ public class GogoLanService {
             eventMatchesByPlayer.put(playerId, fetchWindowedMatches(playerId, startMillis, endMillis));
         });
 
+        List<MatchStats> allMatches = eventMatchesByPlayer.values().stream()
+                .flatMap(List::stream)
+                .toList();
+
         List<EventPlayerStatsDTO> players = properties.getPlayerIds().stream()
                 .map(playerId -> toPlayerStats(
                         playerId,
@@ -74,10 +89,6 @@ public class GogoLanService {
                         endDate))
                 .sorted(Comparator.comparingInt(EventPlayerStatsDTO::getTotalEloGain).reversed()
                         .thenComparing(Comparator.comparingDouble(EventPlayerStatsDTO::getAvgKd).reversed()))
-                .toList();
-
-        List<MatchStats> allMatches = eventMatchesByPlayer.values().stream()
-                .flatMap(List::stream)
                 .toList();
         Map<String, AdvancedStatsAccumulator> advancedStatsByPlayer = buildAdvancedStats(eventMatchesByPlayer);
         players.forEach(player -> applyAdvancedStats(player, advancedStatsByPlayer.get(player.getPlayerId())));
@@ -98,6 +109,7 @@ public class GogoLanService {
         dto.setAwards(buildAwards(players));
         dto.setQueueCombos(buildQueueCombos(players, eventMatchesByPlayer));
         dto.setMapLeaderboard(buildEventMapLeaderboard(allMatches));
+        eventCache.put(cacheKey, new CacheEntry(dto, now + CACHE_DURATION_MILLIS));
         return dto;
     }
 
@@ -110,13 +122,23 @@ public class GogoLanService {
     }
 
     private FaceitV4MatchStatsResponse fetchV4MatchStats(String matchId) {
-        return authenticatedWebClient.get()
+        long now = System.currentTimeMillis();
+        MatchStatsCacheEntry cached = v4MatchStatsCache.get(matchId);
+        if (cached != null && now < cached.expiresAtMillis()) {
+            return cached.response();
+        }
+
+        FaceitV4MatchStatsResponse response = authenticatedWebClient.get()
                 .uri("/data/v4/matches/{matchId}/stats", matchId)
                 .retrieve()
                 .bodyToMono(FaceitV4MatchStatsResponse.class)
                 .block();
-    }
 
+        if (response != null) {
+            v4MatchStatsCache.put(matchId, new MatchStatsCacheEntry(response, now + MATCH_STATS_CACHE_DURATION_MILLIS));
+        }
+        return response;
+    }
     private List<MatchStats> fetchWindowedMatches(String playerId, long startMillis, long endMillis) {
         String baseUrl = "/api/stats/v1/stats/time/users/" + playerId + "/games/cs2?size=100&game_mode=5v5";
         List<MatchStats> filteredMatches = new ArrayList<>();
@@ -239,7 +261,9 @@ public class GogoLanService {
                         .thenComparing(EventDayStatsDTO::getAvgKd)
                         .thenComparingInt(EventDayStatsDTO::getWinrate))
                 .orElse(null));
-        dto.setTotalSessionHours(round(dailyStats.stream().mapToDouble(EventDayStatsDTO::getSessionHours).sum()));
+        int totalSessionMinutes = dailyStats.stream().mapToInt(EventDayStatsDTO::getSessionMinutes).sum();
+        dto.setTotalSessionMinutes(totalSessionMinutes);
+        dto.setTotalSessionHours(round(totalSessionMinutes / 60.0));
         return dto;
     }
 
@@ -295,11 +319,34 @@ public class GogoLanService {
         dto.setAavg(stats.aavg());
         dto.setDavg(stats.davg());
         dto.setLastResults(stats.last5Results());
+        long totalDurationMillis = sorted.stream()
+                .mapToLong(this::matchDurationMillis)
+                .sum();
+        if (totalDurationMillis <= 0) {
+            long latest = sorted.get(0).getDate();
+            long earliest = sorted.get(sorted.size() - 1).getDate();
+            totalDurationMillis = Math.max(0L, latest - earliest);
+        }
 
-        long latest = sorted.get(0).getDate();
-        long earliest = sorted.get(sorted.size() - 1).getDate();
-        dto.setSessionHours(round(ChronoUnit.MINUTES.between(Instant.ofEpochMilli(earliest), Instant.ofEpochMilli(latest)) / 60.0));
+        int sessionMinutes = (int) Math.round(totalDurationMillis / 60000.0);
+        dto.setSessionMinutes(sessionMinutes);
+        dto.setSessionHours(round(sessionMinutes / 60.0));
         return dto;
+    }
+    private long matchDurationMillis(MatchStats match) {
+        long startedAt = normalizeEpochMillis(match.getCreatedAt());
+        long finishedAt = normalizeEpochMillis(match.getDate());
+        if (startedAt > 0 && finishedAt > startedAt) {
+            return finishedAt - startedAt;
+        }
+        return 0L;
+    }
+
+    private long normalizeEpochMillis(long value) {
+        if (value <= 0) {
+            return 0L;
+        }
+        return value < 100000000000L ? value * 1000L : value;
     }
 
     private List<EventQueueComboDTO> buildQueueCombos(List<EventPlayerStatsDTO> players,
@@ -396,43 +443,63 @@ public class GogoLanService {
         }
 
         return List.of(
-                award("LAN MVP", maxBy(active, Comparator.comparingDouble(this::mvpScore)), player -> String.format("%.1f", mvpScore(player)), "Composite score from ELO, K/D, ADR and win rate."),
-                award("Elo Farmer", maxBy(active, Comparator.comparingInt(EventPlayerStatsDTO::getTotalEloGain)), player -> signed(player.getTotalEloGain()), "Highest ELO gain during the event."),
-                award("Top Fragger", maxBy(active, Comparator.comparingDouble(EventPlayerStatsDTO::getAvgKr)), player -> String.format("%.2f", player.getAvgKr()), "Best kill-per-round average."),
-                award("Entry Fragger", maxBy(active, Comparator.comparingDouble(this::entryAttemptScore)), player -> String.format("%.1f%% (%d attempts)", player.getEntryAttemptRate(), player.getEntryCount()), "Highest entry attempt rate."),
-                award("Entry Success", maxBy(active, Comparator.comparingDouble(this::entrySuccessScore)), player -> String.format("%.0f%%", player.getEntrySuccessRate()), "Best entry conversion rate with a minimum of three attempts."),
-                award("Clutcher", maxBy(active, Comparator.comparingInt(EventPlayerStatsDTO::getClutchWins)), player -> player.getClutchWins() + " wins", "Most 1v1 and 1v2 clutches won."),
-                award("MVP Farmer", maxBy(active, Comparator.comparingDouble(this::mvpPerGameScore)), player -> String.format("%.2f / game (%d total)", player.getMvpsPerGame(), player.getMvps()), "Highest MVP average per game."),
-                award("AWPer", maxBy(active, Comparator.comparingDouble(this::sniperPerGameScore)), player -> String.format("%.2f / game (%d total)", player.getSniperKillsPerGame(), player.getSniperKills()), "Highest sniper kill average per game."),
-                award("Pistol King", maxBy(active, Comparator.comparingDouble(this::pistolPerGameScore)), player -> String.format("%.2f / game (%d total)", player.getPistolKillsPerGame(), player.getPistolKills()), "Highest pistol kill average per game."),
-                award("Multi-kill Machine", maxBy(active, Comparator.comparingDouble(this::multiKillPerGameScore)), player -> String.format("%.2f / game (%d total)", player.getMultiKillRoundsPerGame(), player.getMultiKillRounds()), "Highest multi-kill rounds per game."),
-                award("Flash Support", maxBy(active, Comparator.comparingDouble(this::flashPerRoundScore)), player -> String.format("%.2f / round (%d total)", player.getEnemiesFlashedPerRound(), player.getEnemiesFlashed()), "Highest enemies flashed per round."),
-                award("Nade Damage", maxBy(active, Comparator.comparingDouble(EventPlayerStatsDTO::getUtilityDamagePerRound)), player -> String.format("%.2f / round", player.getUtilityDamagePerRound()), "Highest utility damage per round."),
-                award("Headshot Machine", maxBy(active, Comparator.comparingDouble(EventPlayerStatsDTO::getAvgHsPercent)), player -> String.format("%.0f%%", player.getAvgHsPercent()), "Highest average headshot percentage."),
-                award("Ironman", maxBy(active, Comparator.comparingInt(EventPlayerStatsDTO::getMatchesPlayed)), player -> player.getMatchesPlayed() + " matches", "Most games played during the LAN."),
-                award("Heater Check", maxBy(active, Comparator.comparingInt(EventPlayerStatsDTO::getLongestWinStreak)), player -> player.getLongestWinStreak() + " in a row", "Longest win streak."),
-                award("Tilt Award", maxBy(active, Comparator.comparingInt(EventPlayerStatsDTO::getLongestLossStreak)), player -> player.getLongestLossStreak() + " losses", "Longest loss streak."),
-                award("Baiter", minBy(active, Comparator.comparingDouble(EventPlayerStatsDTO::getAvgKr)), player -> String.format("%.2f", player.getAvgKr()), "Lowest kill-per-round average.")
+                award("LAN MVP", maxByAll(active, Comparator.comparingDouble(this::mvpScore)), player -> String.format("%.1f", mvpScore(player)), "Composite score from ELO, K/D, ADR and win rate."),
+                award("Elo Farmer", maxByAll(active, Comparator.comparingInt(EventPlayerStatsDTO::getTotalEloGain)), player -> signed(player.getTotalEloGain()), "Highest ELO gain during the event."),
+                award("Top Fragger", maxByAll(active, Comparator.comparingDouble(EventPlayerStatsDTO::getAvgKr)), player -> String.format("%.2f", player.getAvgKr()), "Best kill-per-round average."),
+                award("Entry Fragger", maxByAll(active, Comparator.comparingDouble(this::entryAttemptScore)), player -> String.format("%.1f%% (%d attempts)", player.getEntryAttemptRate(), player.getEntryCount()), "Highest entry attempt rate."),
+                award("Entry Success", maxByAll(active, Comparator.comparingDouble(this::entrySuccessScore)), player -> String.format("%.0f%% (%d attempts)", player.getEntrySuccessRate(), player.getEntryCount()), "Best entry conversion rate with a minimum of three attempts."),
+                award("Clutcher", maxByAll(active, Comparator.comparingInt(EventPlayerStatsDTO::getClutchWins)), player -> String.format("%d wins (%d 1v1, %d 1v2)", player.getClutchWins(), player.getClutch1v1Wins(), player.getClutch1v2Wins()), "Most 1v1 and 1v2 clutches won."),
+                award("MVP Farmer", maxByAll(active, Comparator.comparingDouble(this::mvpPerGameScore)), player -> String.format("%.2f / game (%d total)", player.getMvpsPerGame(), player.getMvps()), "Highest MVP average per game."),
+                award("AWPer", maxByAll(active, Comparator.comparingDouble(this::sniperPerGameScore)), player -> String.format("%.2f / game (%d total)", player.getSniperKillsPerGame(), player.getSniperKills()), "Highest sniper kill average per game."),
+                award("Pistol King", maxByAll(active, Comparator.comparingDouble(this::pistolPerGameScore)), player -> String.format("%.2f / game (%d total)", player.getPistolKillsPerGame(), player.getPistolKills()), "Highest pistol kill average per game."),
+                award("Multi-kill Machine", maxByAll(active, Comparator.comparingDouble(this::multiKillPerGameScore)), player -> String.format("%.2f / game (%d total)", player.getMultiKillRoundsPerGame(), player.getMultiKillRounds()), "Highest multi-kill rounds per game."),
+                award("Flash Support", maxByAll(active, Comparator.comparingDouble(this::flashPerRoundScore)), player -> String.format("%.2f / round (%d total)", player.getEnemiesFlashedPerRound(), player.getEnemiesFlashed()), "Highest enemies flashed per round."),
+                award("Nade Damage", maxByAll(active, Comparator.comparingDouble(EventPlayerStatsDTO::getUtilityDamagePerRound)), player -> String.format("%.2f / round", player.getUtilityDamagePerRound()), "Highest utility damage per round."),
+                award("Headshot Machine", maxByAll(active, Comparator.comparingDouble(EventPlayerStatsDTO::getAvgHsPercent)), player -> String.format("%.0f%%", player.getAvgHsPercent()), "Highest average headshot percentage."),
+                award("Ironman", maxByAll(active, Comparator.comparingInt(EventPlayerStatsDTO::getMatchesPlayed)), player -> player.getMatchesPlayed() + " matches", "Most games played during the LAN."),
+                award("Heater Check", maxByAll(active, Comparator.comparingInt(EventPlayerStatsDTO::getLongestWinStreak)), player -> player.getLongestWinStreak() + " in a row", "Longest win streak."),
+                award("Tilt Award", maxByAll(active, Comparator.comparingInt(EventPlayerStatsDTO::getLongestLossStreak)), player -> player.getLongestLossStreak() + " losses", "Longest loss streak."),
+                award("Baiter", minByAll(active, Comparator.comparingDouble(EventPlayerStatsDTO::getAvgKr)), player -> String.format("%.2f", player.getAvgKr()), "Lowest kill-per-round average.")
         );
     }
 
-    private EventPlayerStatsDTO maxBy(List<EventPlayerStatsDTO> players, Comparator<EventPlayerStatsDTO> comparator) {
-        return players.stream().max(comparator).orElse(players.get(0));
+    private List<EventPlayerStatsDTO> maxByAll(List<EventPlayerStatsDTO> players, Comparator<EventPlayerStatsDTO> comparator) {
+        EventPlayerStatsDTO winner = players.stream().max(comparator).orElse(players.get(0));
+        return players.stream()
+                .filter(player -> comparator.compare(player, winner) == 0)
+                .toList();
     }
 
-    private EventPlayerStatsDTO minBy(List<EventPlayerStatsDTO> players, Comparator<EventPlayerStatsDTO> comparator) {
-        return players.stream().min(comparator).orElse(players.get(0));
+    private List<EventPlayerStatsDTO> minByAll(List<EventPlayerStatsDTO> players, Comparator<EventPlayerStatsDTO> comparator) {
+        EventPlayerStatsDTO winner = players.stream().min(comparator).orElse(players.get(0));
+        return players.stream()
+                .filter(player -> comparator.compare(player, winner) == 0)
+                .toList();
     }
 
     private EventAwardDTO award(String title,
-                                EventPlayerStatsDTO winner,
+                                List<EventPlayerStatsDTO> winners,
                                 Function<EventPlayerStatsDTO, String> valueFn,
                                 String description) {
+        EventPlayerStatsDTO primaryWinner = winners.get(0);
         EventAwardDTO dto = new EventAwardDTO();
         dto.setTitle(title);
-        dto.setWinner(winner.getNickname());
-        dto.setValue(valueFn.apply(winner));
+        dto.setWinner(winners.stream()
+                .map(EventPlayerStatsDTO::getNickname)
+                .collect(Collectors.joining(", ")));
+        dto.setWinners(winners.stream()
+                .map(this::toAwardWinner)
+                .toList());
+        dto.setValue(valueFn.apply(primaryWinner));
         dto.setDescription(description);
+        return dto;
+    }
+
+    private EventAwardWinnerDTO toAwardWinner(EventPlayerStatsDTO player) {
+        EventAwardWinnerDTO dto = new EventAwardWinnerDTO();
+        dto.setPlayerId(player.getPlayerId());
+        dto.setNickname(player.getNickname());
+        dto.setAvatar(player.getAvatar());
         return dto;
     }
 
@@ -489,6 +556,11 @@ public class GogoLanService {
     private double round(double value) {
         return Math.round(value * 10.0) / 10.0;
     }
+
+
+    private record CacheEntry(GogoLanEventDTO dto, long expiresAtMillis) {}
+
+    private record MatchStatsCacheEntry(FaceitV4MatchStatsResponse response, long expiresAtMillis) {}
 
     private record PlayerMatchRef(String playerId, MatchStats match) {}
 
@@ -657,3 +729,8 @@ public class GogoLanService {
         }
     }
 }
+
+
+
+
+

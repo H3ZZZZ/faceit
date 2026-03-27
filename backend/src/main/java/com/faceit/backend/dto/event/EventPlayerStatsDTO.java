@@ -29,6 +29,7 @@ public class EventPlayerStatsDTO {
     private int longestLossStreak;
     private List<String> last5Results;
     private double totalSessionHours;
+    private int totalSessionMinutes;
     private Instant lastMatchAt;
     private String mostPlayedMap;
     private String bestMap;
@@ -249,6 +250,14 @@ public class EventPlayerStatsDTO {
 
     public void setTotalSessionHours(double totalSessionHours) {
         this.totalSessionHours = totalSessionHours;
+    }
+
+    public int getTotalSessionMinutes() {
+        return totalSessionMinutes;
+    }
+
+    public void setTotalSessionMinutes(int totalSessionMinutes) {
+        this.totalSessionMinutes = totalSessionMinutes;
     }
 
     public Instant getLastMatchAt() {
