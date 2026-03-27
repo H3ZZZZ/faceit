@@ -1,19 +1,19 @@
-import { Routes, Route } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
-import Home from "./pages/Home";
+import GogoLanPage from "./pages/GogoLanPage";
 import GogoTracker from "./pages/GogoTracker";
+import Home from "./pages/Home";
 import IconGallery from "./pages/IconGallery";
 import PlayerDetails from "./pages/PlayerDetails";
 import SearchPage from "./pages/SearchPage";
-import SladeshTracker from "./pages/SladeshTracker";
 import SharedStatsPage from "./pages/SharedStatsPage";
-import GogoLanPage from "./pages/GogoLanPage";
+import SladeshTracker from "./pages/SladeshTracker";
 
 function App() {
   return (
-    <div className="flex">
+    <div className="flex bg-[#181818]">
       <Sidebar />
-      <main className="ml-52 w-full bg-[#181818] min-h-screen px-6 py-6">
+      <main className="min-h-screen w-full bg-[#181818] px-4 pb-6 pt-20 lg:ml-52 lg:px-6 lg:py-6">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/search" element={<SearchPage />} />
