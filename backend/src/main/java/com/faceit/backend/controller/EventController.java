@@ -1,9 +1,13 @@
 package com.faceit.backend.controller;
 
+import com.faceit.backend.dto.event.AdvancedEventRequestDTO;
 import com.faceit.backend.dto.event.GogoLanEventDTO;
+import com.faceit.backend.service.AdvancedEventService;
 import com.faceit.backend.service.GogoLanService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,9 +18,12 @@ import java.time.LocalDate;
 @RequestMapping("/api/events")
 public class EventController {
     private final GogoLanService gogoLanService;
+    private final AdvancedEventService advancedEventService;
 
-    public EventController(GogoLanService gogoLanService) {
+    public EventController(GogoLanService gogoLanService,
+                           AdvancedEventService advancedEventService) {
         this.gogoLanService = gogoLanService;
+        this.advancedEventService = advancedEventService;
     }
 
     @GetMapping("/gogo-lan")
@@ -24,5 +31,14 @@ public class EventController {
             @RequestParam(required = false) LocalDate start,
             @RequestParam(required = false) LocalDate end) {
         return ResponseEntity.ok(gogoLanService.getEvent(start, end));
+    }
+
+    @PostMapping("/advanced")
+    public ResponseEntity<GogoLanEventDTO> getAdvancedEvent(@RequestBody AdvancedEventRequestDTO request) {
+        return ResponseEntity.ok(advancedEventService.getEvent(
+                request.getPlayerIds(),
+                request.getStartDate(),
+                request.getEndDate(),
+                request.getName()));
     }
 }

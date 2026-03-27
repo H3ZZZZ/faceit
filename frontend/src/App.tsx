@@ -1,5 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
+import AdvancedPage from "./pages/AdvancedPage";
 import GogoLanPage from "./pages/GogoLanPage";
 import GogoTracker from "./pages/GogoTracker";
 import Home from "./pages/Home";
@@ -18,11 +19,12 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/gogo-tracker" element={<GogoTracker />} />
+          <Route path="/gogo-lan" element={<GogoLanPage />} />
+          <Route path="/advanced" element={<AdvancedPage />} />
           <Route path="/icons" element={<IconGallery />} />
           <Route path="/player/:nickname" element={<PlayerDetails />} />
           <Route path="/sladesh-tracker" element={<SladeshTracker />} />
           <Route path="/shared-stats" element={<SharedStatsPage />} />
-          <Route path="/gogo-lan" element={<GogoLanPage />} />
         </Routes>
       </main>
     </div>

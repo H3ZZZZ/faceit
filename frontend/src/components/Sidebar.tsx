@@ -6,6 +6,7 @@ import {
   FaChartLine,
   FaHome,
   FaSearch,
+  FaSlidersH,
   FaStar,
   FaTimes,
   FaTrophy,
@@ -23,6 +24,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/", label: "Home", icon: FaHome },
   { to: "/gogo-tracker", label: "GOGO Tracker", icon: FaChartLine },
   { to: "/gogo-lan", label: "GOGO LAN", icon: FaTrophy },
+  { to: "/advanced", label: "Custom Squad", icon: FaSlidersH },
   { to: "/sladesh-tracker", label: "Sladesh Tracker", icon: FaUserSecret },
   { to: "/shared-stats", label: "Played Together", icon: FaUsers },
   { to: "/search", label: "Search Player", icon: FaSearch },
@@ -146,3 +148,4 @@ export default function Sidebar() {
     </>
   );
 }
+

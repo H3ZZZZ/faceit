@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Home() {
   const [nickname, setNickname] = useState("");
@@ -16,68 +16,79 @@ export default function Home() {
   };
 
   return (
-    <div className="text-white text-center mt-20 px-4">
-      <h1 className="text-3xl font-bold mb-4">
-        Welcome to GOGO Tracker by H3ZZ
-      </h1>
-      <p className="text-sm text-gray-400 mb-8">
-        This site provides FACEIT stats, tools, and trackers – all in one place.
+    <div className="mt-12 px-4 text-center text-white sm:mt-20">
+      <h1 className="mb-4 text-3xl font-bold">Welcome to GOGO Tracker by H3ZZ</h1>
+      <p className="mb-8 text-sm text-gray-400">
+        This site provides FACEIT stats, tools, and trackers all in one place.
       </p>
 
-      {/* Search Input */}
-      <div className="flex justify-center items-center gap-2 mb-10 max-w-md mx-auto">
+      <div className="mx-auto mb-10 flex max-w-md items-center justify-center gap-2">
         <input
           type="text"
           placeholder="Enter FACEIT nickname"
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
           onKeyDown={handleKeyPress}
-          className="w-full px-4 py-2 rounded-lg bg-white text-black placeholder-gray-600 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-black placeholder-gray-600 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
         />
 
         <button
           onClick={handleSearch}
-          className="bg-orange-500 text-black px-4 py-2 rounded hover:bg-orange-600 font-medium"
+          className="rounded bg-orange-500 px-4 py-2 font-medium text-black hover:bg-orange-600"
         >
           Search
         </button>
       </div>
 
-      {/* Navigation Grid */}
       <p>Check out some of the other pages:</p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-3xl mx-auto mt-5">
+      <div className="mx-auto mt-5 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Link
+          to="/gogo-lan"
+          className="rounded bg-gray-700 px-6 py-3 font-medium text-white hover:bg-gray-600"
+        >
+          GOGO LAN
+        </Link>
+
+        <Link
+          to="/advanced"
+          className="rounded bg-gray-700 px-6 py-3 font-medium text-white hover:bg-gray-600"
+        >
+          Custom Squad
+        </Link>
+
         <Link
           to="/shared-stats"
-          className="bg-gray-700 text-white px-6 py-3 rounded hover:bg-gray-600 font-medium"
+          className="rounded bg-gray-700 px-6 py-3 font-medium text-white hover:bg-gray-600"
         >
-          🤝 Played Together
+          Played Together
         </Link>
 
         <Link
           to="/gogo-tracker"
-          className="bg-gray-700 text-white px-6 py-3 rounded hover:bg-gray-600 font-medium"
+          className="rounded bg-gray-700 px-6 py-3 font-medium text-white hover:bg-gray-600"
         >
-          📊 GOGO Tracker
+          GOGO Tracker
         </Link>
 
         <Link
           to="/sladesh-tracker"
-          className="bg-gray-700 text-white px-6 py-3 rounded hover:bg-gray-600 font-medium"
+          className="rounded bg-gray-700 px-6 py-3 font-medium text-white hover:bg-gray-600"
         >
-          🕵️ Sladesh Tracker
+          Sladesh Tracker
         </Link>
 
         <Link
           to="/icons"
-          className="bg-gray-700 text-white px-6 py-3 rounded hover:bg-gray-600 font-medium"
+          className="rounded bg-gray-700 px-6 py-3 font-medium text-white hover:bg-gray-600"
         >
-          ⭐ Icon List
+          Icon List
         </Link>
       </div>
 
-      <p className="text-sm text-gray-400 mt-8">
+      <p className="mt-8 text-sm text-gray-400">
         If the features don't work, the server might be down.
       </p>
     </div>
   );
 }
+

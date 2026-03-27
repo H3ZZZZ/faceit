@@ -2,6 +2,7 @@ import type { PlayerStats } from "../types/PlayerStats";
 import type { PlayerStatsFull } from "../types/PlayerStatsFull";
 import type { SladeshSimple } from "../types/SladeshSimple";
 import type { GogoLanEvent } from "../types/GogoLanEvent";
+import type { FaceitPlayerSuggestion } from "../types/FaceitPlayerSuggestion";
 
 const API_BASE = `${import.meta.env.VITE_API_BASE_URL}`;
 
@@ -119,3 +120,27 @@ export async function fetchGogoLanEvent(start?: string, end?: string): Promise<G
   if (!res.ok) throw new Error("Failed to fetch Gogo LAN event");
   return res.json();
 }
+
+export async function searchFaceitPlayers(query: string): Promise<FaceitPlayerSuggestion[]> {
+  const params = new URLSearchParams({ query });
+  const res = await fetch(`${API_BASE}/players/search?${params.toString()}`);
+  if (!res.ok) throw new Error("Failed to search players");
+  return res.json();
+}
+
+export async function fetchAdvancedEvent(request: {
+  playerIds: string[];
+  startDate: string;
+  endDate: string;
+  name?: string;
+}): Promise<GogoLanEvent> {
+  const res = await fetch(`${API_BASE}/events/advanced`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  if (!res.ok) throw new Error("Failed to fetch Custom Squad");
+  return res.json();
+}
+
+
