@@ -3,6 +3,8 @@ package com.faceit.backend.service;
 import com.faceit.backend.dto.PlayerStatsDTO;
 import com.faceit.backend.model.FaceitPlayerInfo;
 import com.faceit.backend.model.FaceitV4PlayerGameStatsResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -12,6 +14,8 @@ import java.util.List;
 
 @Service
 public class FaceitStatsV4Service {
+
+    private static final Logger log = LoggerFactory.getLogger(FaceitStatsV4Service.class);
 
     private final WebClient authenticatedWebClient;
 
@@ -54,7 +58,11 @@ public class FaceitStatsV4Service {
     public List<PlayerStatsDTO> getStatsForPlayers(List<String> playerIds) {
         List<PlayerStatsDTO> results = new ArrayList<>();
         for (String playerId : playerIds) {
-            results.add(getStatsForPlayer(playerId));
+            try {
+                results.add(getStatsForPlayer(playerId));
+            } catch (RuntimeException ex) {
+                log.warn("Failed to fetch v4 stats for player {}", playerId, ex);
+            }
         }
         return results;
     }

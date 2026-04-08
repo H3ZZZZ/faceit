@@ -1,5 +1,5 @@
 // src/context/PlayerDataContext.tsx
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { fetchAllPlayerStats } from "../api/api";
 import type { PlayerStats } from "../types/PlayerStats";
 
@@ -20,17 +20,20 @@ export function PlayerDataProvider({
 }) {
   const [data, setData] = useState<PlayerStats[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const hasStartedFetch = useRef(false);
 
   useEffect(() => {
-    if (!data) {
-      fetchAllPlayerStats()
-        .then(setData)
-        .catch((error) => {
-          console.error("Failed to fetch player stats:", error);
-          setData(null);
-        })
-        .finally(() => setLoading(false)); // ✅ make sure this runs even on error
-    }
+    if (hasStartedFetch.current) return;
+
+    hasStartedFetch.current = true;
+
+    fetchAllPlayerStats()
+      .then(setData)
+      .catch((error) => {
+        console.error("Failed to fetch player stats:", error);
+        setData(null);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   return (

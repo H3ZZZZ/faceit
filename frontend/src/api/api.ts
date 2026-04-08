@@ -43,45 +43,31 @@ function isPlayerStats(value: unknown): value is PlayerStats {
   );
 }
 
+function isPlayerStatsArray(value: unknown): value is PlayerStats[] {
+  return Array.isArray(value) && value.every(isPlayerStats);
+}
+
 export async function fetchAllPlayerStats(): Promise<PlayerStats[]> {
-  const results = await Promise.allSettled(
-    PLAYER_IDS.map(async (id) => {
-      const res = await fetch(`${API_BASE}/stats/v4/${id}`);
-      if (!res.ok) {
-        throw new Error(`Stats fetch failed for ${id}: HTTP ${res.status}`);
-      }
-      const data: unknown = await res.json();
-      if (!isPlayerStats(data)) {
-        throw new Error(`Invalid player payload for ${id}`);
-      }
-      return data;
-    }),
-  );
-
-  const players: PlayerStats[] = [];
-  const failures: string[] = [];
-
-  for (const result of results) {
-    if (result.status === "fulfilled") {
-      players.push(result.value);
-    } else {
-      failures.push(
-        result.reason instanceof Error
-          ? result.reason.message
-          : String(result.reason),
-      );
-    }
+  const params = new URLSearchParams();
+  for (const id of PLAYER_IDS) {
+    params.append("ids", id);
   }
 
-  if (failures.length > 0) {
-    console.error("Some player stats requests failed:", failures);
+  const res = await fetch(`${API_BASE}/stats/v4?${params.toString()}`);
+  if (!res.ok) {
+    throw new Error(`Stats fetch failed: HTTP ${res.status}`);
   }
 
-  if (players.length === 0) {
+  const data: unknown = await res.json();
+  if (!isPlayerStatsArray(data)) {
+    throw new Error("Invalid player stats payload");
+  }
+
+  if (data.length === 0) {
     throw new Error("All player stats requests failed");
   }
 
-  return players;
+  return data;
 }
 
 export async function fetchPlayerByNickname(
@@ -139,8 +125,7 @@ export async function fetchAdvancedEvent(request: {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request),
   });
-  if (!res.ok) throw new Error("Failed to fetch Custom Squad");
+
+  if (!res.ok) throw new Error("Failed to fetch advanced event");
   return res.json();
 }
-
-
