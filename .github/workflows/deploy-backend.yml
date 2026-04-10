@@ -21,7 +21,9 @@ jobs:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
+          timeout: 30s
           command_timeout: 45m
+          debug: true
           script: |
             cd ~/faceit
             bash scripts/deploy-backend.sh
