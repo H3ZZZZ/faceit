@@ -4,8 +4,10 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 @Configuration
+@Profile("!prod")
 public class SwaggerConfig {
 
     @Bean
@@ -13,7 +15,7 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("Faceit Stats API")
-                        .description("API til at hente spillerstatistik på CS2")
+                        .description("API til at hente spillerstatistik p\u00e5 CS2")
                         .version("v1.0"));
     }
 }
